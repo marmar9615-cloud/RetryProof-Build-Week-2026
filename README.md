@@ -1,4 +1,23 @@
-# MarMar Labs
+# RetryProof — OpenAI Build Week 2026
+
+> **Hosted judge path:** [marmarlabs.com/retryproof/lab](https://marmarlabs.com/retryproof/lab/)  
+> **Category:** Developer Tools  
+> **Production source:** single-history judge snapshot of integrated commit `2dd084c`
+
+RetryProof reproduces a retry-sensitive automation failure, asks GPT-5.6 to propose a grounded reliability contract, requires human approval, and lets a fresh Codex SDK thread prepare one bounded repair. Deterministic validators—not either model—own every red or green verdict.
+
+### Five-minute judge path
+
+1. Open the hosted lab; no account or rebuild is required.
+2. Select **Load seeded workflow**, then **Analyze retry risk**. Loading alone stays on Import.
+3. Inspect the explicitly labeled seeded GPT-5.6-informed contract and approve the at-most-once invariant.
+4. Run the deterministic suite and inspect the red timeout trace: one event, two deliveries, two mock effects.
+5. Select **Repair with live Codex** once and allow the private worker to finish.
+6. Replay the identical suite and inspect `2 → 1`, the evidence receipt, and the explicit claim limitation.
+
+The seeded analysis is deliberately cached and labeled for reproducibility; supported custom uploads exercise the live GPT-5.6 path. RetryProof never executes uploaded workflow code, makes real payment/network/SQL/shell calls, or claims production exactly-once safety.
+
+## Production monorepo
 
 MarMar Labs is a self-funded software lab building small, practical tools for builders.
 

@@ -1,0 +1,113 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "OpenAI Sans",
+      "role": "body"
+    }
+  ],
+  "colors": {
+    "primary": "#000000",
+    "accent": "#000000",
+    "background": "#FFFFFF",
+    "textPrimary": "#282828",
+    "link": "#000000"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "OpenAI Sans",
+      "heading": "OpenAI Sans"
+    },
+    "fontStacks": {
+      "heading": [
+        "OpenAI Sans",
+        "sans-serif"
+      ],
+      "body": [
+        "OpenAI Sans",
+        "sans-serif"
+      ],
+      "paragraph": [
+        "OpenAI Sans",
+        "sans-serif"
+      ]
+    },
+    "fontSizes": {
+      "h1": "30px",
+      "h2": "16px",
+      "body": "14px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 6,
+    "borderRadius": "10px"
+  },
+  "components": {
+    "buttonPrimary": {
+      "background": "#FFFFFF",
+      "textColor": "#FFFFFF",
+      "borderRadius": "9999px",
+      "borderRadiusCorners": {
+        "topLeft": "9999px",
+        "topRight": "9999px",
+        "bottomRight": "9999px",
+        "bottomLeft": "9999px"
+      },
+      "shadow": "none"
+    }
+  },
+  "images": {
+    "favicon": "File saved at: attached_assets/favicon.png",
+    "ogImage": "https://developers.openai.com/og/api/docs/guides/latest-model.png",
+    "logoAlt": "OpenAI Developers"
+  },
+  "__llm_logo_reasoning": {
+    "selectedIndex": 0,
+    "reasoning": "Selected #0 because it is visible, located in the header, and links to the homepage, which aligns with the brand OpenAI as inferred from the URL and page title.",
+    "confidence": 0.9,
+    "source": "llm"
+  },
+  "__llm_button_reasoning": {
+    "primary": {
+      "index": 0,
+      "text": "API Dashboard",
+      "reasoning": "Button #0 is the only button detected, and it is labeled 'API Dashboard', which suggests a primary action related to accessing the dashboard. However, it lacks a vibrant background color, which is typically expected for a primary CTA."
+    },
+    "secondary": {
+      "index": -1,
+      "text": "N/A",
+      "reasoning": "There is only one button detected, so no secondary button can be identified."
+    },
+    "confidence": 0.7
+  },
+  "personality": {
+    "tone": "professional",
+    "energy": "medium",
+    "targetAudience": "developers and tech professionals"
+  },
+  "designSystem": {
+    "framework": "custom",
+    "componentLibrary": ""
+  },
+  "confidence": {
+    "buttons": 0.7,
+    "colors": 0.9,
+    "overall": 0.8
+  },
+  "__llm_metadata": {
+    "logoSelection": {
+      "llmCalled": true,
+      "llmSucceeded": true,
+      "finalSource": "llm",
+      "rawLogoSelection": {
+        "selectedLogoIndex": 0,
+        "selectedLogoReasoning": "Selected #0 because it is visible, located in the header, and links to the homepage, which aligns with the brand OpenAI as inferred from the URL and page title.",
+        "confidence": 0.9
+      }
+    },
+    "buttonClassification": {
+      "llmCalled": true,
+      "llmSucceeded": true
+    }
+  }
+}

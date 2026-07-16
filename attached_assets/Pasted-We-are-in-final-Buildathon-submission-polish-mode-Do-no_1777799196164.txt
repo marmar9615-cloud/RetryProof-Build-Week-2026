@@ -1,0 +1,54 @@
+We are in final Buildathon submission polish mode. Do not rebuild the app or add a large new feature. The goal is to make NeverGuess demo-ready for judges in the next hour.
+
+Context:
+NeverGuess analyzes AI-built apps before a user lets another coding agent change them. It takes a GitHub repo URL, optional live app URL, and requested change, then creates a pre-flight report with:
+- detected stack
+- architecture summary
+- Mermaid architecture graph
+- risky assumptions
+- acceptance criteria
+- safer prompt pack for Replit / Cursor / Copilot
+- rollout and rollback notes
+- optional live URL smoke-test evidence
+- shareable public report
+- Markdown export
+
+Critical fixes:
+1. On the authenticated audit detail page, replace any placeholder “Impact Analysis” content with the real ReportPanel / ReportView flow.
+   - The completed audit page must show the actual report: architecture summary, graph, risks, acceptance criteria, prompt pack, rollout notes, smoke-test evidence if present, Share button, and Export Markdown button.
+   - Remove or hide any “available in the next release” placeholder language.
+
+2. Make the unauthenticated landing/demo path judge-friendly.
+   - Root page should clearly explain the product in one screen:
+     “NeverGuess — analyze AI-built apps before you change them.”
+   - Include a visible “See sample report” CTA.
+   - Include a visible “Sign in to run your own audit” CTA.
+   - Make sure /r/demo works when SEED_DEMO=true.
+
+3. Add a short Buildathon-ready README section:
+   - what it does
+   - why it matters
+   - how to run the demo
+   - required/optional secrets
+   - how to deploy
+   - sample judging flow
+
+4. Verify production readiness:
+   - Run typecheck.
+   - Run unit tests.
+   - Run build.
+   - Fix only blocking errors.
+   - Do not refactor unrelated files.
+
+5. Add or verify these production env notes:
+   - PUBLIC_APP_URL should be set to the deployed app origin.
+   - SEED_DEMO=true should create a public demo report.
+   - GITHUB_TOKEN is optional but improves live GitHub ingestion.
+   - AI_INTEGRATIONS_OPENROUTER_BASE_URL and AI_INTEGRATIONS_OPENROUTER_API_KEY are optional; without them, demo mode must still work.
+
+Quality bar:
+- Keep the dark mission-control visual style.
+- Make the first screen understandable to a non-engineer judge.
+- Preserve demo mode if any secret is missing.
+- Keep changes small and scoped.
+- After changes, summarize exactly what changed, what commands passed, and what URL/path I should submit.

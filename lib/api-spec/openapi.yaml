@@ -1,0 +1,1138 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: NeverGuess API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: Auth
+    description: Browser and mobile authentication endpoints.
+  - name: Audits
+    description: Audit creation, retrieval, and listing.
+  - name: Trial
+    description: Anonymous one-audit trial eligibility.
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/user:
+    get:
+      tags: [Auth]
+      operationId: getCurrentAuthUser
+      summary: Get the currently authenticated user
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationSessionHeader'
+        - $ref: '#/components/parameters/SessionCookie'
+      responses:
+        '200':
+          description: Auth status resolved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUserEnvelope'
+  /login:
+    get:
+      tags: [Auth]
+      operationId: beginBrowserLogin
+      summary: Start the browser OIDC login flow
+      parameters:
+        - name: returnTo
+          in: query
+          required: false
+          description: Relative path to redirect to after login (must start with `/`).
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to the OIDC authorization endpoint.
+  /callback:
+    get:
+      tags: [Auth]
+      operationId: handleBrowserLoginCallback
+      summary: Complete the browser OIDC login flow
+      parameters:
+        - name: code
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: iss
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uri
+      responses:
+        '302':
+          description: Redirect to the `returnTo` path on success.
+  /logout:
+    get:
+      tags: [Auth]
+      operationId: logoutBrowserSession
+      summary: Clear the session and begin OIDC logout
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationSessionHeader'
+        - $ref: '#/components/parameters/SessionCookie'
+      responses:
+        '302':
+          description: Redirect to the OIDC provider logout URL.
+  /mobile-auth/token-exchange:
+    post:
+      tags: [Auth]
+      operationId: exchangeMobileAuthorizationCode
+      summary: Exchange a mobile OIDC code for a session token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MobileTokenExchangeRequest'
+      responses:
+        '200':
+          description: Session created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MobileTokenExchangeSuccess'
+        '400':
+          description: Missing or invalid required fields.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: Token did not contain usable claims.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: Token exchange failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /mobile-auth/logout:
+    post:
+      tags: [Auth]
+      operationId: logoutMobileSession
+      summary: Delete a mobile session token
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationSessionHeader'
+      responses:
+        '200':
+          description: Logout processed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutSuccess'
+
+  /trial/status:
+    get:
+      tags: [Trial]
+      operationId: getTrialStatus
+      summary: Get anonymous trial eligibility
+      description: |
+        Returns whether the current browser can run a no-account NeverGuess
+        trial audit. Signed-in users receive authenticated=true and do not use
+        trial quota.
+      responses:
+        '200':
+          description: Trial status returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrialStatus'
+
+  /models:
+    get:
+      tags: [Models]
+      operationId: listModels
+      summary: List selectable analysis models
+      description: |
+        Returns the curated catalog of frontier models an audit can run on,
+        enriched with live context-window and pricing metadata from the
+        OpenRouter catalog when available. `available` and `lockReason` are
+        computed for the current caller (anonymous trial, free, or Pro).
+        Never fails on upstream errors — live fields are null when the
+        OpenRouter catalog is unreachable.
+      responses:
+        '200':
+          description: Model catalog.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelsResponse'
+
+  /audits:
+    get:
+      tags: [Audits]
+      operationId: listAudits
+      summary: List audits for the current user
+      responses:
+        '200':
+          description: Audits returned successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Audit'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    post:
+      tags: [Audits]
+      operationId: createAudit
+      summary: Create a new audit
+      description: |
+        Authenticated users can create audits as normal. Anonymous visitors can
+        create one no-account trial audit, tracked by an HttpOnly trial cookie
+        and hashed network signals.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [requestedChange]
+              properties:
+                githubUrl:
+                  type: [string, 'null']
+                liveUrl:
+                  type: [string, 'null']
+                requestedChange:
+                  type: string
+                  minLength: 1
+                githubToken:
+                  type: [string, 'null']
+                  description: |
+                    Optional, per-request GitHub personal access token. Held in
+                    server memory only for this single ingestion job. Never
+                    persisted to the database, never logged, never returned in
+                    any response. Use this when the public rate limit is
+                    exhausted or you want extra headroom for ingesting a
+                    larger public repository.
+                model:
+                  type: [string, 'null']
+                  description: |
+                    Optional analysis model id from GET /models. Must be one
+                    of the catalog ids. Anonymous trial audits may only use
+                    the default model. Premium (proOnly) models require a Pro
+                    plan. Omitted or null means the server default.
+      responses:
+        '201':
+          description: Audit created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Audit'
+        '400':
+          description: Invalid request body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: Selected model is not available on the caller's plan.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '429':
+          description: Active audit or anonymous trial limit reached.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /audits/{id}:
+    get:
+      tags: [Audits]
+      operationId: getAudit
+      summary: Get a single audit by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Audit returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Audit'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    delete:
+      tags: [Audits]
+      operationId: deleteAudit
+      summary: Delete an audit owned by the authenticated user
+      description: |
+        Permanently removes an audit and its report. Owner only; public demo
+        audits cannot be deleted by anonymous viewers.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Audit deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteAuditResponse'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: Audit not found or not owned by caller.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /audits/{id}/rerun:
+    post:
+      tags: [Audits]
+      operationId: rerunAudit
+      summary: Re-trigger ingestion + analysis on an existing audit
+      description: |
+        Resets the audit's status, drops any existing report, and re-queues the
+        ingestion+analysis pipeline. Useful after refining the requested change
+        or when retrying a failed analysis. Owner only.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                model:
+                  type: [string, 'null']
+                  description: |
+                    Optionally re-run the audit on a different catalog model.
+                    Same validation and plan gating as audit creation. Omitted
+                    or null re-runs with the audit's existing model.
+      responses:
+        '200':
+          description: Audit re-queued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Audit'
+        '400':
+          description: Invalid request body or unknown model id.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: Selected model is not available on the caller's plan.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: Audit not found or not owned by caller.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: Audit is already running; wait for it to finish.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /audits/{id}/runs:
+    get:
+      tags: [Audits]
+      operationId: listAuditRuns
+      summary: List superseded run receipts for an audit
+      description: |
+        Returns verdict receipts from reports this audit's re-runs replaced,
+        newest first. Empty for audits that were never re-run. Same
+        visibility rules as reading the audit itself.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Run history returned.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RunHistoryEntry'
+        '404':
+          description: Audit not found or not visible to caller.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /audits/{id}/events:
+    get:
+      operationId: streamAuditEvents
+      summary: Subscribe to live phase events for an audit (Server-Sent Events).
+      description: |
+        Returns a `text/event-stream` of `AuditEvent` objects (one per SSE
+        `data:` frame, JSON-encoded). Buffered events are replayed first, then
+        new events stream live. The stream closes after a `done` or `error`
+        event. Owners (or anonymous viewers of demo audits) only.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: SSE stream of AuditEvent JSON frames.
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/AuditEvent'
+        "404":
+          description: Audit not found or not accessible to the caller.
+  /audits/{id}/report:
+    get:
+      tags: [Audits]
+      operationId: getReport
+      summary: Get the analysis report for an audit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Report returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: Not found or not ready.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /reports/{id}/share:
+    post:
+      tags: [Audits]
+      operationId: createReportShareLink
+      summary: Generate or return a public share slug for a report
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Share link generated or already existed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareLinkResponse'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    delete:
+      tags: [Audits]
+      operationId: revokeReportShareLink
+      summary: Revoke an existing share link for a report
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Share link revoked (or already absent).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevokeShareLinkResponse'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /r/{slug}:
+    get:
+      tags: [Audits]
+      operationId: getPublicReport
+      summary: Get a publicly shared report by slug (no auth)
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Public report returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicReport'
+        '404':
+          description: Not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+components:
+  parameters:
+    AuthorizationSessionHeader:
+      name: Authorization
+      in: header
+      required: false
+      description: Opaque session token — `Bearer <sid>`.
+      schema:
+        type: string
+    SessionCookie:
+      name: sid
+      in: cookie
+      required: false
+      description: Browser session cookie.
+      schema:
+        type: string
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    AuthUser:
+      type: object
+      required: [id, email, firstName, lastName, profileImageUrl]
+      properties:
+        id:
+          type: string
+        email:
+          type: [string, 'null']
+          format: email
+        firstName:
+          type: [string, 'null']
+        lastName:
+          type: [string, 'null']
+        profileImageUrl:
+          type: [string, 'null']
+    AuthUserEnvelope:
+      type: object
+      required: [user]
+      properties:
+        user:
+          oneOf:
+            - $ref: '#/components/schemas/AuthUser'
+            - type: 'null'
+    MobileTokenExchangeRequest:
+      type: object
+      required: [code, code_verifier, redirect_uri, state]
+      properties:
+        code:
+          type: string
+          minLength: 1
+        code_verifier:
+          type: string
+          minLength: 1
+        redirect_uri:
+          type: string
+          minLength: 1
+          format: uri
+        state:
+          type: string
+          minLength: 1
+        nonce:
+          type: string
+          minLength: 1
+    MobileTokenExchangeSuccess:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+    LogoutSuccess:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+          const: true
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+
+    TrialStatus:
+      type: object
+      required: [authenticated, trialEligible, used, limit, remaining]
+      properties:
+        authenticated:
+          type: boolean
+        trialEligible:
+          type: boolean
+        used:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+        remaining:
+          type: integer
+          minimum: 0
+
+    AuditStatus:
+      type: string
+      enum: [pending, running, ingested, analyzing, done, error]
+    RiskSeverity:
+      type: string
+      enum: [critical, high, medium, low]
+    RiskEvidence:
+      type: object
+      description: |
+        A concrete pointer into the ingested repo backing a risky assumption.
+        `verified` is stamped server-side after cross-checking the cited path
+        against the ingested file tree.
+      required: [path]
+      properties:
+        path:
+          type: string
+        quote:
+          type: [string, 'null']
+        verified:
+          type: boolean
+    RiskyAssumption:
+      type: object
+      required: [title, severity, detail]
+      properties:
+        title:
+          type: string
+        severity:
+          $ref: '#/components/schemas/RiskSeverity'
+        detail:
+          type: string
+        evidence:
+          type: array
+          description: Absent on reports generated before citations shipped.
+          items:
+            $ref: '#/components/schemas/RiskEvidence'
+    AffectedArea:
+      type: object
+      description: |
+        Blast radius entry — a file or directory the requested change is
+        expected to touch. Paths are model-proposed; `create` entries may
+        not exist in the tree yet.
+      required: [path, reason, action]
+      properties:
+        path:
+          type: string
+        reason:
+          type: string
+        action:
+          type: string
+          enum: [modify, create, read]
+    AcceptanceCriterion:
+      type: object
+      required: [title, detail]
+      properties:
+        title:
+          type: string
+        detail:
+          type: string
+    PromptPack:
+      type: object
+      required: [replit, cursor, copilot, claudeCode, codex]
+      properties:
+        replit:
+          type: string
+        cursor:
+          type: string
+        copilot:
+          type: string
+        claudeCode:
+          type: string
+        codex:
+          type: string
+    Verdict:
+      type: string
+      enum: [safe, caution, block]
+    TestPlan:
+      type: object
+      required: [vitest, playwright]
+      properties:
+        vitest:
+          type: string
+        playwright:
+          type: string
+    SmokeCheckStatus:
+      type: string
+      enum: [pass, fail, warn, skip]
+    SmokeCheck:
+      type: object
+      required: [id, label, status, detail]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        status:
+          $ref: '#/components/schemas/SmokeCheckStatus'
+        metric:
+          type: string
+        detail:
+          type: string
+    SmokeTestResults:
+      type: object
+      required: [ranAt, url, skipped, checks]
+      properties:
+        ranAt:
+          type: string
+          format: date-time
+        url:
+          type: string
+        skipped:
+          type: boolean
+        skipReason:
+          type: string
+        checks:
+          type: array
+          items:
+            $ref: '#/components/schemas/SmokeCheck'
+    ModelCatalogEntry:
+      type: object
+      description: |
+        One selectable analysis model. Static catalog fields are always
+        present; live fields (contextLength, pricing) are enriched from the
+        public OpenRouter catalog and are null when enrichment is unavailable.
+      required: [id, displayName, provider, tier, proOnly, isDefault, available, lockReason, blurb, contextLength, promptPricePerMTok, completionPricePerMTok]
+      properties:
+        id:
+          type: string
+          description: OpenRouter model id, e.g. "anthropic/claude-fable-5".
+        displayName:
+          type: string
+        provider:
+          type: string
+          enum: [anthropic, openai, google, x-ai]
+        tier:
+          type: string
+          enum: [standard, premium]
+        proOnly:
+          type: boolean
+        isDefault:
+          type: boolean
+        available:
+          type: boolean
+          description: Whether the current caller may run audits on this model.
+        lockReason:
+          type: [string, 'null']
+          description: |
+            Why the model is unavailable to this caller, when available is
+            false. One of "sign-in-required" or "pro-required".
+        blurb:
+          type: [string, 'null']
+          description: Short, capability-based description. No benchmark claims.
+        contextLength:
+          type: [integer, 'null']
+        promptPricePerMTok:
+          type: [number, 'null']
+          description: USD per million prompt tokens, from the live catalog.
+        completionPricePerMTok:
+          type: [number, 'null']
+          description: USD per million completion tokens, from the live catalog.
+    ModelsResponse:
+      type: object
+      required: [models, defaultModel, live]
+      properties:
+        models:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModelCatalogEntry'
+        defaultModel:
+          type: string
+          description: Catalog id used when an audit has no explicit model.
+        live:
+          type: boolean
+          description: True when live OpenRouter enrichment succeeded.
+    AnalysisUsage:
+      type: object
+      description: Model response receipt captured from the analysis provider.
+      required: [model, requestedModel, reasoningEffort, gateway, generatedAt]
+      properties:
+        model:
+          type: string
+        requestedModel:
+          type: string
+        reasoningEffort:
+          type: string
+        gateway:
+          type: string
+          enum: [replit-ai-integrations, openrouter-direct]
+        requestId:
+          type: [string, 'null']
+        promptTokens:
+          type: [integer, 'null']
+          minimum: 0
+        completionTokens:
+          type: [integer, 'null']
+          minimum: 0
+        totalTokens:
+          type: [integer, 'null']
+          minimum: 0
+        reasoningTokens:
+          type: [integer, 'null']
+          minimum: 0
+        generatedAt:
+          type: string
+          format: date-time
+    Report:
+      type: object
+      required:
+        - id
+        - auditId
+        - source
+        - architectureSummary
+        - mermaidGraph
+        - riskyAssumptions
+        - acceptanceCriteria
+        - promptPack
+        - rolloutNotes
+        - riskScore
+        - verdict
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        auditId:
+          type: string
+          format: uuid
+        source:
+          type: string
+        architectureSummary:
+          type: string
+        mermaidGraph:
+          type: string
+        riskyAssumptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RiskyAssumption'
+        acceptanceCriteria:
+          type: array
+          items:
+            $ref: '#/components/schemas/AcceptanceCriterion'
+        promptPack:
+          $ref: '#/components/schemas/PromptPack'
+        rolloutNotes:
+          type: string
+        smokeTestResults:
+          oneOf:
+            - $ref: '#/components/schemas/SmokeTestResults'
+            - type: 'null'
+        smokeScreenshotUrl:
+          type: [string, 'null']
+        analysisUsage:
+          oneOf:
+            - $ref: '#/components/schemas/AnalysisUsage'
+            - type: 'null'
+        riskScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+        verdict:
+          $ref: '#/components/schemas/Verdict'
+        testPlan:
+          oneOf:
+            - $ref: '#/components/schemas/TestPlan'
+            - type: 'null'
+        affectedAreas:
+          oneOf:
+            - type: array
+              items:
+                $ref: '#/components/schemas/AffectedArea'
+            - type: 'null'
+        shareSlug:
+          type: [string, 'null']
+        createdAt:
+          type: string
+          format: date-time
+    RunHistoryEntry:
+      type: object
+      description: |
+        Verdict receipt from a superseded report, snapshotted when a re-run
+        replaced it. Newest first.
+      required: [id, model, verdict, riskScore, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        model:
+          type: [string, 'null']
+        verdict:
+          oneOf:
+            - $ref: '#/components/schemas/Verdict'
+            - type: 'null'
+        riskScore:
+          type: [integer, 'null']
+        createdAt:
+          type: string
+          format: date-time
+    ShareLinkResponse:
+      type: object
+      required: [shareSlug, shareUrl]
+      properties:
+        shareSlug:
+          type: string
+        shareUrl:
+          type: string
+    RevokeShareLinkResponse:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+          const: true
+    DeleteAuditResponse:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+          const: true
+    PublicReport:
+      type: object
+      required: [report, audit]
+      properties:
+        report:
+          $ref: '#/components/schemas/Report'
+        audit:
+          $ref: '#/components/schemas/PublicAudit'
+    PublicAudit:
+      type: object
+      required: [requestedChange, githubUrl, liveUrl, detectedFramework, detectedPackageManager, detectedDbLayer, detectedAuthLayer, createdAt]
+      properties:
+        requestedChange:
+          type: string
+        githubUrl:
+          type: [string, 'null']
+        liveUrl:
+          type: [string, 'null']
+        detectedFramework:
+          type: [string, 'null']
+        detectedPackageManager:
+          type: [string, 'null']
+        detectedDbLayer:
+          type: [string, 'null']
+        detectedAuthLayer:
+          type: [string, 'null']
+        createdAt:
+          type: string
+          format: date-time
+    IngestionSource:
+      type: string
+      enum: [github, demo]
+    AuditEvent:
+      type: object
+      description: One Server-Sent Event in the audit live stream.
+      required: [ts, phase, message]
+      properties:
+        ts:
+          type: integer
+          format: int64
+          description: Unix epoch milliseconds when the event was published.
+        phase:
+          type: string
+          enum: [ingesting, detecting-stack, calling-llm, running-smoke, done, error]
+        message:
+          type: string
+    Audit:
+      type: object
+      required:
+        - id
+        - userId
+        - githubUrl
+        - liveUrl
+        - requestedChange
+        - model
+        - status
+        - ingestionSource
+        - detectedFramework
+        - detectedPackageManager
+        - detectedDbLayer
+        - detectedAuthLayer
+        - routesFolder
+        - deploymentClues
+        - fileTreeSample
+        - fileCount
+        - ingestionError
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+        githubUrl:
+          type: [string, 'null']
+        liveUrl:
+          type: [string, 'null']
+        requestedChange:
+          type: string
+        model:
+          type: [string, 'null']
+          description: |
+            OpenRouter model id this audit's analysis runs on. Null means the
+            server default (audits created before model selection shipped, or
+            users who never touched the selector).
+        status:
+          $ref: '#/components/schemas/AuditStatus'
+        ingestionSource:
+          oneOf:
+            - $ref: '#/components/schemas/IngestionSource'
+            - type: 'null'
+        detectedFramework:
+          type: [string, 'null']
+        detectedPackageManager:
+          type: [string, 'null']
+        detectedDbLayer:
+          type: [string, 'null']
+        detectedAuthLayer:
+          type: [string, 'null']
+        routesFolder:
+          type: [string, 'null']
+        deploymentClues:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: 'null'
+        fileTreeSample:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: 'null'
+        fileCount:
+          type: [integer, 'null']
+        ingestionError:
+          type: [string, 'null']
+        riskScore:
+          type: [integer, 'null']
+          minimum: 0
+          maximum: 100
+        verdict:
+          oneOf:
+            - $ref: '#/components/schemas/Verdict'
+            - type: 'null'
+        isDemo:
+          type: boolean
+          description: |
+            True when this audit belongs to the read-only demo gallery rather
+            than the caller. Only meaningful in list responses for anonymous
+            callers; absent elsewhere.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time

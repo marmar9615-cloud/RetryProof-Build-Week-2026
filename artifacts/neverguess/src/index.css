@@ -1,0 +1,618 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* The `dark:` variant fires inside an explicit .dark wrapper OR inside an
+   .ink "instrument panel" — so component-level dark: styles still work when
+   we drop a dark readout into the light page. */
+@custom-variant dark (&:is(.dark *, .ink *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card-border: hsl(var(--card-border));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-popover-border: hsl(var(--popover-border));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary-border: var(--primary-border);
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-secondary-border: var(--secondary-border);
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-muted-border: var(--muted-border);
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent-border: var(--accent-border);
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-destructive-border: var(--destructive-border);
+
+  --font-sans: var(--app-font-sans);
+  --font-serif: var(--app-font-serif);
+  --font-mono: var(--app-font-mono);
+  --font-display: var(--app-font-display);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* Warm, low-spread elevation. On paper we read depth from soft layered
+   shadows + hairline borders, not from heavy glows. */
+@theme {
+  --shadow-2xs: 0 1px 2px rgba(24, 20, 40, 0.04);
+  --shadow-xs: 0 1px 2px rgba(24, 20, 40, 0.05);
+  --shadow-sm: 0 1px 2px rgba(24, 20, 40, 0.05), 0 1px 3px rgba(24, 20, 40, 0.05);
+  --shadow: 0 1px 2px rgba(24, 20, 40, 0.05), 0 4px 12px -2px rgba(24, 20, 40, 0.07);
+  --shadow-md: 0 2px 4px rgba(24, 20, 40, 0.05), 0 8px 20px -6px rgba(24, 20, 40, 0.10);
+  --shadow-lg: 0 8px 16px -8px rgba(24, 20, 40, 0.08), 0 18px 40px -12px rgba(24, 20, 40, 0.12);
+  --shadow-xl: 0 12px 24px -10px rgba(24, 20, 40, 0.10), 0 30px 64px -18px rgba(24, 20, 40, 0.16);
+  --shadow-2xl: 0 24px 48px -16px rgba(24, 20, 40, 0.18), 0 48px 96px -24px rgba(24, 20, 40, 0.22);
+}
+
+/* ===========================================================================
+   MarMar Labs — "engineering paper" light theme
+   Warm paper base, near-black ink, one confident electric-iris accent.
+   Dark "instrument" panels are opt-in via the .ink class (see below).
+   =========================================================================== */
+:root {
+  color-scheme: light;
+
+  --button-outline: rgba(24, 20, 40, 0.12);
+  --badge-outline: rgba(24, 20, 40, 0.10);
+
+  --opaque-button-border-intensity: 9;
+
+  --elevate-1: rgba(24, 20, 40, 0.04);
+  --elevate-2: rgba(24, 20, 40, 0.07);
+
+  /* Surfaces */
+  --background: 40 18% 96%;          /* #f7f6f3 warm paper */
+  --foreground: 250 16% 9%;          /* #15141a ink */
+
+  --border: 40 13% 89%;              /* #e7e5df hairline */
+  --input: 40 12% 85%;
+  --ring: 253 80% 56%;               /* iris focus ring */
+
+  --card: 0 0% 100%;                 /* #ffffff elevated */
+  --card-foreground: 250 16% 9%;
+  --card-border: 40 13% 90%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 250 16% 9%;
+  --popover-border: 40 13% 90%;
+
+  /* Primary — electric iris #5126e0 */
+  --primary: 253 78% 52%;
+  --primary-foreground: 0 0% 100%;
+  --primary-border: rgba(58, 23, 176, 0.55);
+
+  --secondary: 40 14% 93%;           /* warm chip */
+  --secondary-foreground: 250 14% 18%;
+  --secondary-border: rgba(24, 20, 40, 0.08);
+
+  --muted: 40 13% 94%;
+  --muted-foreground: 250 8% 40%;    /* #5f5b68 secondary text */
+  --muted-border: rgba(24, 20, 40, 0.08);
+
+  --accent: 253 76% 96%;             /* faint iris tint for hovers */
+  --accent-foreground: 253 78% 42%;
+  --accent-border: rgba(81, 38, 224, 0.18);
+
+  --destructive: 0 72% 51%;          /* #dc2626 */
+  --destructive-foreground: 0 0% 100%;
+  --destructive-border: rgba(220, 38, 38, 0.35);
+
+  /* Brand shorthands (raw values for arbitrary tw utilities) */
+  --brand-iris: #5126e0;
+  --brand-iris-bright: #7c5cff;
+  --brand-iris-deep: #3a17b0;
+  --brand-ink: #0b0a12;
+  --brand-paper: #f7f6f3;
+  --brand-border: rgba(81, 38, 224, 0.22);
+  --brand-glow: rgba(81, 38, 224, 0.30);
+  --brand-line: rgba(24, 20, 40, 0.08);
+  --brand-cyan: #0e9aab;
+  --brand-green: #0e9f6e;
+  --brand-amber: #b45309;
+  --brand-red: #dc2626;
+
+  /* Back-compat aliases — older markup still references these names.
+     On paper they resolve to the deep iris so contrast holds. */
+  --brand-purple: #5126e0;
+  --brand-purple-bright: #4b23c9;
+  --brand-purple-deep: #3a17b0;
+  --brand-border-purple: rgba(81, 38, 224, 0.22);
+  --brand-glow-purple: rgba(81, 38, 224, 0.30);
+
+  --app-font-sans: "Geist Variable", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --app-font-display: "Bricolage Grotesque Variable", "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --app-font-serif: Georgia, "Times New Roman", serif;
+  --app-font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  --radius: 0.75rem;
+}
+
+/* ---------------------------------------------------------------------------
+   .ink — dark "instrument panel" context. Drop this class on any section to
+   re-scope every semantic token to a near-black violet readout, so the same
+   components render correctly dark inside an otherwise light page.
+   --------------------------------------------------------------------------- */
+.ink {
+  color-scheme: dark;
+
+  --button-outline: rgba(160, 140, 255, 0.18);
+  --badge-outline: rgba(160, 140, 255, 0.14);
+  --elevate-1: rgba(160, 140, 255, 0.06);
+  --elevate-2: rgba(160, 140, 255, 0.11);
+
+  --background: 252 32% 5%;          /* #0b0a12 */
+  --foreground: 0 0% 100%;
+
+  --border: 250 24% 18%;
+  --input: 250 24% 18%;
+  --ring: 253 95% 70%;
+
+  --card: 252 30% 8%;                /* #12101c */
+  --card-foreground: 0 0% 100%;
+  --card-border: 250 28% 22%;
+
+  --popover: 252 32% 6%;
+  --popover-foreground: 0 0% 100%;
+  --popover-border: 250 28% 22%;
+
+  --primary: 253 95% 70%;            /* brighter iris on dark */
+  --primary-foreground: 252 60% 8%;
+  --primary-border: rgba(160, 140, 255, 0.45);
+
+  --secondary: 250 26% 14%;
+  --secondary-foreground: 0 0% 100%;
+  --secondary-border: rgba(160, 140, 255, 0.14);
+
+  --muted: 250 24% 12%;
+  --muted-foreground: 250 16% 72%;   /* #b2adc4 */
+  --muted-border: rgba(160, 140, 255, 0.12);
+
+  --accent: 250 40% 18%;
+  --accent-foreground: 253 95% 82%;
+  --accent-border: rgba(160, 140, 255, 0.22);
+
+  --destructive: 0 84% 64%;
+  --destructive-foreground: 0 0% 100%;
+  --destructive-border: rgba(248, 113, 113, 0.4);
+
+  --brand-border: rgba(160, 140, 255, 0.30);
+  --brand-glow: rgba(124, 92, 255, 0.55);
+  --brand-line: rgba(255, 255, 255, 0.06);
+
+  --brand-purple: #7c5cff;
+  --brand-purple-bright: #a78bff;
+  --brand-purple-deep: #5126e0;
+  --brand-border-purple: rgba(160, 140, 255, 0.30);
+  --brand-glow-purple: rgba(124, 92, 255, 0.55);
+
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground selection:bg-primary/20 selection:text-foreground;
+    /* Geist stylistic sets give the body face a touch more character. */
+    font-feature-settings: "cv01", "ss03";
+    /* Paper atmosphere: a faint warm iris bloom up top + a barely-there grain
+       so the background reads as a surface, not a flat fill. */
+    background-image:
+      radial-gradient(1200px 620px at 50% -12%, rgba(81, 38, 224, 0.055), transparent 60%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.022'/%3E%3C/svg%3E");
+    background-attachment: fixed;
+  }
+
+  /* Display face on the loud headings; smaller headings stay on Geist. */
+  h1,
+  h2 {
+    font-family: var(--app-font-display);
+    font-weight: 600;
+    letter-spacing: -0.022em;
+  }
+
+  ::-webkit-scrollbar {
+    width: 11px;
+    height: 11px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(40 10% 80%);
+    border-radius: 7px;
+    border: 3px solid hsl(var(--background));
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(250 8% 62%);
+  }
+  .ink ::-webkit-scrollbar-thumb {
+    background: hsl(250 20% 26%);
+    border-color: hsl(var(--background));
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--app-font-display);
+    letter-spacing: -0.022em;
+  }
+
+  /* Small mono spec-label used for eyebrows / section tags. Restrained: this
+     replaces the old habit of stamping UPPERCASE mono on everything. */
+  .eyebrow {
+    font-family: var(--app-font-mono);
+    font-size: 0.6875rem;
+    line-height: 1;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  /* Frosted surfaces — light by default, dark inside .ink. */
+  .glass {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    border: 1px solid hsl(var(--card-border));
+  }
+  .glass-soft {
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(10px) saturate(130%);
+    -webkit-backdrop-filter: blur(10px) saturate(130%);
+    border: 1px solid hsl(var(--border));
+  }
+  .ink .glass {
+    background: rgba(18, 16, 28, 0.72);
+    border-color: hsl(var(--card-border));
+  }
+  .ink .glass-soft {
+    background: rgba(18, 16, 28, 0.55);
+    border-color: hsl(var(--border));
+  }
+
+  /* Solid iris — the old rainbow text gradient is gone. Any remaining
+     usages now render as a single confident accent, not an AI tell. */
+  .text-brand-gradient {
+    color: var(--brand-iris);
+    -webkit-text-fill-color: var(--brand-iris);
+  }
+  .ink .text-brand-gradient {
+    color: var(--brand-iris-bright);
+    -webkit-text-fill-color: var(--brand-iris-bright);
+  }
+
+  .ring-brand-glow {
+    box-shadow: 0 0 0 1px var(--brand-border), 0 18px 48px -20px var(--brand-glow);
+  }
+
+  /* Engineering grid — used as structure, sparingly. Faint ink lines on
+     paper; faint white lines inside instrument panels. */
+  .grid-bg,
+  .paper-grid {
+    background-image:
+      linear-gradient(var(--brand-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--brand-line) 1px, transparent 1px);
+    background-size: 64px 64px;
+    background-position: -1px -1px;
+  }
+  .dot-grid {
+    background-image: radial-gradient(var(--brand-line) 1px, transparent 1.4px);
+    background-size: 22px 22px;
+  }
+
+  /* Legacy no-op: a few markup sites still reference scan-line. */
+  .scan-line::after {
+    content: none;
+  }
+
+  .legal-copy {
+    color: hsl(var(--muted-foreground));
+  }
+  .legal-copy > * + * {
+    margin-top: 1.5rem;
+  }
+  .legal-copy h2,
+  .legal-copy h3 {
+    color: hsl(var(--foreground));
+    font-weight: 600;
+    line-height: 1.25;
+  }
+  .legal-copy h2 {
+    font-size: 1.25rem;
+  }
+  .legal-copy a {
+    color: var(--brand-iris);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-thickness: 1px;
+  }
+  .legal-copy a:hover {
+    color: var(--brand-iris-deep);
+  }
+  .legal-copy strong {
+    color: hsl(var(--foreground));
+    font-weight: 600;
+  }
+  .legal-copy ul,
+  .legal-copy ol {
+    padding-left: 1.25rem;
+  }
+  .legal-copy ul {
+    list-style: disc;
+  }
+  .legal-copy ol {
+    list-style: decimal;
+  }
+  .legal-copy li + li {
+    margin-top: 0.5rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Motion — high-impact, restrained. One orchestrated load reveal + a couple
+   of ambient loops. Everything collapses under prefers-reduced-motion.
+   --------------------------------------------------------------------------- */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+.animate-fade-up {
+  animation: fade-up 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.7s ease both;
+}
+
+@keyframes celebrate {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--cx, 0px), 90vh, 0) rotate(720deg) scale(0.6);
+    opacity: 0;
+  }
+}
+.animate-celebrate {
+  --cx: calc((50% - 50%) * 1px);
+  animation: celebrate 1.6s cubic-bezier(0.2, 0.6, 0.4, 1) forwards;
+}
+.animate-celebrate:nth-child(2n) {
+  --cx: -120px;
+}
+.animate-celebrate:nth-child(3n) {
+  --cx: 90px;
+}
+.animate-celebrate:nth-child(5n) {
+  --cx: -200px;
+}
+.animate-celebrate:nth-child(7n) {
+  --cx: 160px;
+}
+.animate-celebrate:nth-child(11n) {
+  --cx: -60px;
+}
+
+@keyframes reel-pulse {
+  0%,
+  100% {
+    border-color: hsl(var(--border));
+    background: hsl(var(--muted));
+  }
+  12%,
+  24% {
+    border-color: var(--brand-border);
+    background: hsl(var(--accent));
+  }
+}
+.animate-reel-pulse {
+  animation: reel-pulse 5.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-celebrate {
+    animation: none;
+    opacity: 0;
+  }
+  .animate-reel-pulse,
+  .animate-fade-up,
+  .animate-fade-in,
+  .animate-ping {
+    animation: none;
+  }
+  .animate-fade-up {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 16mm 14mm;
+  }
+  :root,
+  body {
+    background: #ffffff !important;
+    color: #111111 !important;
+    color-scheme: light !important;
+  }
+  body {
+    background-image: none !important;
+  }
+  .no-print,
+  aside,
+  header,
+  footer,
+  [data-testid="card-live-stream"],
+  [data-testid="section-report-actions"],
+  [data-testid="section-secondary-cta"],
+  [data-testid="banner-demo-mode"],
+  [data-testid="footer-health"],
+  [data-testid="footer-replit-credit"],
+  .print\:hidden {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+  /* Instrument panels print on white. */
+  .ink {
+    background: #ffffff !important;
+    color: #111111 !important;
+  }
+  .glass,
+  .glass-soft,
+  .grid-bg,
+  .paper-grid,
+  .dot-grid,
+  .scan-line::after {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border-color: #d4d4d8 !important;
+  }
+  pre,
+  code,
+  .font-mono {
+    color: #111111 !important;
+    background: #f4f4f5 !important;
+    border-color: #d4d4d8 !important;
+  }
+  a {
+    color: #3a17b0 !important;
+    text-decoration: underline;
+  }
+  [data-testid="section-report"] * {
+    box-shadow: none !important;
+  }
+  [data-testid="section-report"] .bg-card,
+  [data-testid="section-report"] [class*="bg-card"],
+  [data-testid="section-report"] [class*="bg-primary/"],
+  [data-testid="section-report"] [class*="bg-secondary/"],
+  [data-testid="section-report"] [class*="bg-background"],
+  [data-testid="section-report"] [class*="bg-emerald-"],
+  [data-testid="section-report"] [class*="bg-yellow-"],
+  [data-testid="section-report"] [class*="bg-amber-"],
+  [data-testid="section-report"] [class*="bg-red-"] {
+    background-color: #ffffff !important;
+    color: #111111 !important;
+  }
+  [data-testid^="item-risk-"],
+  [data-testid^="item-criterion-"],
+  [data-testid^="item-smoke-check-"] {
+    background-color: #f9fafb !important;
+    border-color: #d4d4d8 !important;
+    color: #111111 !important;
+  }
+  [data-testid^="item-risk-"] [class*="text-red-"],
+  [data-testid="badge-verdict"] [class*="text-red-"] {
+    color: #b91c1c !important;
+  }
+  [data-testid^="item-risk-"] [class*="text-orange-"] {
+    color: #c2410c !important;
+  }
+  [data-testid^="item-risk-"] [class*="text-yellow-"],
+  [data-testid="badge-verdict"] [class*="text-yellow-"],
+  [data-testid^="item-risk-"] [class*="text-amber-"],
+  [data-testid="badge-verdict"] [class*="text-amber-"] {
+    color: #a16207 !important;
+  }
+  [data-testid^="item-risk-"] [class*="text-blue-"] {
+    color: #1d4ed8 !important;
+  }
+  [data-testid="badge-verdict"] [class*="text-emerald-"] {
+    color: #047857 !important;
+  }
+  [data-testid="section-tldr-verdict"] {
+    border-width: 2px !important;
+    background-color: #ffffff !important;
+  }
+  [data-testid="section-tldr-verdict"] [data-testid="text-risk-score"] {
+    color: #111111 !important;
+  }
+  [data-testid="section-ai-receipt"]:not([open]) {
+    display: none !important;
+  }
+  [data-testid="section-ai-receipt"] summary {
+    background: #f4f4f5 !important;
+    color: #111111 !important;
+  }
+  [data-testid="section-report"] .text-muted-foreground {
+    color: #4b5563 !important;
+  }
+  [data-testid="section-report"] .text-foreground {
+    color: #111111 !important;
+  }
+  [data-testid^="item-risk-"],
+  [data-testid^="item-criterion-"],
+  [data-testid="card-live-stream"],
+  [data-testid="section-tldr-verdict"] {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  [data-testid="img-mermaid-graph"] svg text {
+    fill: #1f2937 !important;
+  }
+  [data-testid="img-mermaid-graph"] svg .label {
+    color: #1f2937 !important;
+  }
+  [data-testid="img-mermaid-graph"] {
+    background: #ffffff !important;
+    border-color: #d4d4d8 !important;
+  }
+  pre {
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+  }
+}

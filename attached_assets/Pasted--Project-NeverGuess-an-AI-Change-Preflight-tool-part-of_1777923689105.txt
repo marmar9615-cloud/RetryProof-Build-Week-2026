@@ -1,0 +1,143 @@
+> Project: NeverGuess (an AI Change-Preflight tool, part of the MarMar Labs monorepo).
+> Goal: ship a buildathon-ready demo of `/neverguess`, `/app`, `/audits/new`, `/audits/:id`, `/r/:slug`. Do **not** redesign the MarMar Labs marketing site (`/`, `/about`, `/contact`, `/privacy`, `/terms`) — leave those untouched.
+
+---
+
+## 1. The mission
+
+The Replit Buildathon judges will pull up the live site and, in roughly **3 minutes**, decide whether NeverGuess wins. They will:
+
+1. Land on `/neverguess`, click into the app.
+2. Try to use it without signing in.
+3. Look at one or two reports.
+4. Decide whether the product feels real, magical, and Replit-native.
+
+Right now the path from "I just landed" → "wow" is too long, the analysis run looks frozen, and there is no one-click "Run this with Replit Agent" hand-off — which is the obvious wow moment for a Replit-judged event. Fix that.
+
+**Win condition for this pass:** an anonymous visitor on a fresh laptop can, within 30 seconds of landing on `/neverguess`, see a real-looking analysis streaming live, click through a finished sample report, and hit a "Hand off to Replit Agent" button that copies a tailored prompt. Every interaction should feel intentional.
+
+---
+
+## 2. What already works — do **not** rebuild this
+
+The plumbing is solid. Use what's there.
+
+- Backend pipeline `pending → running → ingested → analyzing → done` lives in:
+  - `artifacts/api-server/src/lib/ingest-runner.ts`
+  - `artifacts/api-server/src/lib/github-ingest.ts`
+  - `artifacts/api-server/src/lib/tech-detect.ts`
+  - `artifacts/api-server/src/lib/analysis-runner.ts` (calls OpenRouter, falls back to `demo-report.ts`)
+  - `artifacts/api-server/src/lib/smoke-runner.ts` (Playwright + SSRF-safe proxy)
+- Report shape: `architectureSummary`, `mermaidGraph`, `riskyAssumptions[]` (severity ∈ critical/high/medium/low), `acceptanceCriteria[]`, `promptPack` (replit/cursor/copilot), `rolloutNotes`, plus `smokeTestResults`.
+- DB schema: `lib/db/src/schema/audits.ts` and `lib/db/src/schema/reports.ts`. The OpenAPI source of truth is `lib/api-spec/openapi.yaml`; regenerate clients with `pnpm --filter @workspace/api-spec run codegen` after any schema change.
+- Public share links exist (`/r/:slug`, see `artifacts/neverguess/src/pages/public-report.tsx`), markdown export exists (`artifacts/neverguess/src/lib/markdown-export.ts`), demo audit seed exists (`artifacts/api-server/src/lib/seed-demo.ts`).
+- Brand: black `#030006` background, purple neon `#9b35ff` / `#c084fc`, glassmorphism, Geist + JetBrains Mono. Utilities `.glass`, `.glass-soft`, `.text-brand-gradient`, `.ring-brand-glow`, `.grid-bg`, `.scan-line` live in `artifacts/neverguess/src/index.css`. **Stay on brand.**
+
+---
+
+## 3. Plan first
+
+Before writing code, produce a short plan that lists every file you'll touch and every new component, schema, and API route. Group it so independent work (DB+API, frontend pages, marketing landing tweaks, sample-audit seeding) can run as parallel subagents. Show me the plan, wait for "go", then build.
+
+When you build, build feature by feature in the priority order below — don't skip ahead. After each feature, run `pnpm run typecheck` and the affected vitest specs.
+
+---
+
+## 4. Features to build, in priority order
+
+### P0 — Live streaming analysis (fix the "frozen for 45 seconds" problem)
+
+Right now an audit sits at `analyzing` for ~45s with only a status badge. Judges will think it's broken.
+
+- Add a server-sent-events route `GET /api/audits/:id/events` that streams `phase` updates (`ingesting`, `detecting-stack`, `calling-llm`, `running-smoke`, `done`) plus short evidence lines like `"Found drizzle-orm in package.json"`, `"Detected Replit Auth via openid-client"`, `"Fetched 17 files from owner/repo@main"`.
+- Emit events from `ingest-runner.ts` and `analysis-runner.ts` via a small in-memory pub/sub keyed by `auditId`. No extra infra. Replay the last N events on connect so reconnects don't lose state.
+- Build a new component `artifacts/neverguess/src/components/analysis-stream.tsx` that subscribes via `EventSource`, renders a terminal-style log with a typewriter feel and the brand `.scan-line` accent. Show it on `/audits/:id` while status is in `pending|running|ingested|analyzing`. Replace the current "Fetching repository context…" placeholder.
+- Acceptance: open a fresh audit, watch ~10 evidence lines stream in, status pill flips to `done` and the report fades in without a page reload.
+
+### P0 — One-click "Try a sample" gallery on `/app`
+
+The empty `/app` dashboard (see `artifacts/neverguess/src/pages/dashboard.tsx`) is the first thing a judge sees after clicking from `/neverguess`. Make it a launchpad, not a graveyard.
+
+- On the unauthenticated `/app` view (and on `/neverguess` directly under the mock dashboard), render a 3-card "Try a sample audit" grid. Each card has a repo logo / favicon, repo name, a one-line proposed change, and an "Open report →" link to a pre-seeded `/r/<slug>` link.
+- Seed three sample audits in `artifacts/api-server/src/lib/seed-demo.ts` against well-known public repos (suggested: `vercel/next.js`, `shadcn-ui/ui`, `vitejs/vite`). For each, write a believable proposed change ("Add per-route ISR caching", "Add a dark-mode token to all primitives", "Switch dev server to lightning CSS"). Store these under the existing `DEMO_USER_ID` so the existing `/r/:slug` flow handles them. Run codegen if the API needs a `listSamples` endpoint, or just fetch them through the existing audits list.
+- Acceptance: an anonymous visitor lands on `/app`, sees three sample audits, clicks one, lands on a polished public report in under two seconds.
+
+### P0 — "Hand off to Replit Agent" button
+
+This is the buildathon money-shot. Right now `report-view.tsx` has a Replit/Cursor/Copilot tab with copy buttons. Make the Replit one frictionless.
+
+- In `artifacts/neverguess/src/components/report-view.tsx`, add a primary button next to the "Replit" tab labeled **"Open in Replit Agent"** with the Replit logo. On click:
+  1. Copy the Replit prompt to the clipboard.
+  2. Open `https://replit.com/new` (or, if a `githubUrl` is present, `https://replit.com/github/<owner>/<repo>`) in a new tab.
+  3. Toast: "Prompt copied. Paste into Replit Agent in the new tab."
+- Add a secondary "Send to Replit Agent →" CTA at the bottom of the report.
+- Acceptance: judges click once, get the prompt on their clipboard, and Replit opens. They paste, agent runs.
+
+### P1 — Risk Score + TL;DR card
+
+Reports are long. Give the judge a single number to react to.
+
+- Compute `riskScore` (0–100) and `verdict` (`safe` / `caution` / `block`) on the server in `analysis-runner.ts`, derived from `riskyAssumptions[]` severity counts (e.g., 1 critical = 70+, any high = 40+, medium-only = 20–40, low-only = 0–20). Persist on the `reports` row — add the columns to `lib/db/src/schema/reports.ts`, update the OpenAPI spec, regen, and migrate.
+- Render a sticky top-of-report TL;DR card in `report-view.tsx` with: big number, traffic-light pill, one-sentence verdict, and "Top risk: <title>" pulled from the highest-severity finding.
+- Acceptance: a judge can answer "is this change safe?" in under 5 seconds without scrolling.
+
+### P1 — Test plan generator
+
+Give every report a fourth tool tab labeled **"Test plan"** beside Replit/Cursor/Copilot.
+
+- Extend the LLM prompt in `analysis-runner.ts` so the JSON output also includes `testPlan: { vitest: string, playwright: string }` — actual runnable test stubs targeted at the detected stack and the requested change.
+- Update the JSON schema validator (`isValidReport`) and the demo report so the field is always present.
+- Render the two languages with the same `<CopyButton>` pattern as the prompt pack.
+- Acceptance: every finished report has copy-pasteable Vitest and Playwright stubs that reference real symbols/URLs from the audit context.
+
+### P1 — Streaming progress + risk score on the dashboard cards
+
+The `/app` dashboard cards currently show only a status badge. While an audit is running, show the live "current phase" line from the SSE stream. Once done, show the risk score pill.
+
+### P2 — Polish details that judges notice
+
+These are tiny, non-negotiable.
+
+- Mermaid theme: change the `mermaid.initialize` call in `report-view.tsx` so `primaryBorderColor`, `lineColor`, and `primaryTextColor` use the brand purple (`#9b35ff` / `#c084fc`) instead of the current green. The whole app is purple — the diagram should match.
+- New-audit form (`artifacts/neverguess/src/pages/new-audit.tsx`): add three "Try this" example chips above the form that prefill `githubUrl` + `requestedChange` for the same three sample repos. One click → form filled → submit.
+- `OPENROUTER_MODEL` default in `analysis-runner.ts` is `openai/gpt-5.5` — replace with a current, available OpenRouter model (e.g., `anthropic/claude-sonnet-4.6` or whatever the OpenRouter catalog currently exposes). Keep the env var override.
+- On the `/r/:slug` shared report header, add a small "Built on Replit · NeverGuess by MarMar Labs" badge linking to `https://replit.com`. Free Replit-team brownie points.
+- Add a `/api/healthz` ping in the `Layout` footer so judges can see green status, similar to status-page indicators.
+
+### P2 — PDF export alongside Markdown
+
+`reportToMarkdown` already exists. Add a `reportToPdf` using a lightweight client-side renderer (e.g., `@react-pdf/renderer` or print-to-PDF via a styled `window.print()` route) and wire a "Export PDF" button next to "Export Markdown" in `report-actions.tsx` and `public-report.tsx`. Keep the file naming convention (`neverguess-report-<date>.pdf`).
+
+---
+
+## 5. Constraints — read these carefully
+
+- **Do not touch** `artifacts/neverguess/src/pages/marketing/` files (`home.tsx`, `about.tsx`, `contact.tsx`, `privacy.tsx`, `terms.tsx`). The MarMar Labs marketing site stays as-is. Only `marketing/neverguess.tsx` (the product landing page) is fair game, and only for the small additions above.
+- **Do not break** existing tests in `artifacts/api-server/src/**/__tests__/*.test.ts`. Add new tests for new logic — at minimum: a unit test for the risk-score function, and a unit test for the SSE event emitter (event ordering + replay).
+- **Do not weaken** the SSRF guard in `smoke-runner.ts`, the public-repo check in `github-ingest.ts`, or the ownership scoping in `routes/audits.ts`. Read `threat_model.md` if unsure.
+- **Do not persist** GitHub PATs, raw OIDC tokens, or LLM secrets. Per the existing pattern, user-supplied tokens are in-memory for one job, then dropped.
+- **Do not invent** fake metrics, traction numbers, or testimonials anywhere in the UI. Per `replit.md` rules.
+- **Stack stays the same**: pnpm monorepo, React + Vite + shadcn/ui + wouter + TanStack Query on the front, Express 5 + Drizzle + OpenRouter on the back, OpenAPI as source of truth. Update `lib/api-spec/openapi.yaml` first, then `pnpm --filter @workspace/api-spec run codegen`, then wire it. Don't bypass the generated client.
+- **Loading is always a Skeleton, never a spinner** (per `replit.md`). Empty states must teach the user what to do next.
+- **Every new interactive element gets a `data-testid`** matching the existing convention.
+- **Brand:** stay on `#030006` background, purple neon, JetBrains Mono for code, Geist for body. Use the existing `.glass` / `.ring-brand-glow` utilities — don't hand-roll new gradients.
+
+---
+
+## 6. Definition of done
+
+A judge on a fresh laptop, never having seen NeverGuess before:
+
+1. Opens `/neverguess` → sees the hero, scrolls past the mock dashboard, hits "Open NeverGuess".
+2. Lands on `/app` → sees three pre-seeded sample audits, clicks one.
+3. Reads a polished `/r/:slug` report with risk score, mermaid diagram in brand purple, copy-pasteable test plan, and a "Open in Replit Agent" button.
+4. Goes back, clicks "New Audit", uses the "Try this" prefilled chip, hits Start, watches a streaming log of evidence lines, sees the report animate in.
+5. Hits "Open in Replit Agent" → prompt is on their clipboard, Replit is open in a new tab.
+
+If all five steps work end-to-end on a clean clone with `SEED_DEMO=true` and no external secrets configured, this pass is done.
+
+---
+
+## 7. Now: produce the plan, then go
+
+Reply first with the plan (file list, new components, new endpoints, new schema fields, new tests, parallel-subagent groupings). Wait for confirmation. Then ship feature by feature in P0 → P1 → P2 order. After each feature, run `pnpm run typecheck` and the affected vitest specs and tell me what's green.

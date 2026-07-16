@@ -1,0 +1,10 @@
+User-agent: *
+# Longest-match precedence: the more specific Allow beats "Disallow: /audits/",
+# keeping the public audit form crawlable while private audit pages are not.
+Allow: /audits/new
+Disallow: /app
+Disallow: /login
+Disallow: /audits/
+# /api stays crawlable on purpose: report badge SVGs and OG images live there.
+
+Sitemap: https://marmarlabs.com/sitemap.xml

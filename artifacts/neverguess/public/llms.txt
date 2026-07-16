@@ -1,0 +1,32 @@
+# MarMar Labs
+
+> MarMar Labs is a self-funded software lab based in Minnesota, United States. We ship practical products across web, Python, and iOS, informed by hands-on security research.
+
+## Products
+
+- [RetryProof](https://marmarlabs.com/retryproof): Deterministic retry-fault testing for consequential n8n workflows. The architecture uses GPT-5.6 for structured invariant proposals and Codex for bounded repairs; the public demo labels its locally derived templates, and the simulator and validator own every pass/fail verdict. RetryProof does not claim exactly-once execution or production safety.
+- [NeverGuess](https://marmarlabs.com/neverguess): AI change-preflight tool. Inspects architecture risk, test coverage, and deployment readiness before AI-generated code changes are applied. Free to try. Audits run on your choice of model — Claude Sonnet 5, GPT-5.5, Gemini 3.5 Flash, Grok 4.5, and more; Pro unlocks premium options like Claude Fable 5 and GPT-5.5 Pro — and every report names the exact model that produced it.
+- [Run a preflight](https://marmarlabs.com/audits/new): The NeverGuess audit form. First audit is free, no account needed.
+- [Report examples](https://marmarlabs.com/reports): Public NeverGuess preflight reports with verdict, risk score, risky assumptions, acceptance criteria, safer prompts, and rollout notes.
+- [stui](https://marmarlabs.com/stui): Terminal-native UI framework for Python scripts, published at v2.2.0 with its stable v2 core intact. Version 2.2 adds process-local caching, multiline input, and multi-file watch mode without a browser or server runtime.
+- [SignAI](https://marmarlabs.com/signai): AI-assisted agreement review and signing for iOS. Helps users understand contracts before they sign.
+
+## Pricing
+
+- [Pricing](https://marmarlabs.com/pricing): NeverGuess plans. Free tier (1 audit/month), $10/mo Pro (50 audits/month, or $100/yr), and a contact-us Team tier.
+
+## Company
+
+- [About](https://marmarlabs.com/about): About MarMar Labs — founding story, mission, and the solo builder behind it.
+- [Security Research](https://marmarlabs.com/security-research): Public-safe overview of Marcel Jiron's vulnerability research focus, HackerOne profile, and high-level proof.
+- [Contact](https://marmarlabs.com/contact): Get in touch with MarMar Labs for support, sales, or general inquiries.
+- [Status](https://marmarlabs.com/status): In-browser health check of the NeverGuess API (run from your session) plus service notes for the MarMar Labs surfaces.
+- [Changelog](https://marmarlabs.com/changelog): Product changelog — recent releases, improvements, and fixes across all products.
+
+## Legal
+
+- [Privacy Policy](https://marmarlabs.com/privacy): How MarMar Labs collects, uses, and protects user data.
+- [Terms of Service](https://marmarlabs.com/terms): Terms governing use of MarMar Labs products and services.
+- [SignAI Privacy Policy](https://marmarlabs.com/signai/privacy): Privacy policy specific to the SignAI iOS application.
+- [SignAI Terms of Service](https://marmarlabs.com/signai/terms): Terms of service specific to the SignAI iOS application.
+- [SignAI Support](https://marmarlabs.com/signai/support): Support resources for SignAI users.

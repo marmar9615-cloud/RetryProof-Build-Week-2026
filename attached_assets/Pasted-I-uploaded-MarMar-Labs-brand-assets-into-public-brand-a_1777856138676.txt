@@ -1,0 +1,131 @@
+I uploaded MarMar Labs brand assets into public/brand and public/favicon.ico. Please redesign the site using these assets and make the entire website match the MarMar Labs brand.
+
+Brand:
+MarMar Labs builds AI-powered software tools that reduce guesswork.
+
+Main tagline:
+AI-powered software tools that reduce guesswork.
+
+Secondary phrase:
+Code. Build. Innovate.
+
+Brand style:
+Dark futuristic AI/code lab, black background, purple neon glow, premium developer-tool startup style, clean SaaS layout, glassmorphism panels, subtle grid textures, crisp white text, and strong purple accents.
+
+Use these assets:
+- public/brand/logo-square.png for the main square logo, footer logo, profile-style image, and brand marks.
+- public/brand/logo-square-512.png for compact logo usage if needed.
+- public/favicon.ico for the browser favicon.
+- public/brand/favicon-32x32.png for favicon fallback.
+- public/brand/apple-touch-icon.png for mobile/home-screen icon.
+- public/brand/hero-clean.png as the main homepage hero visual/background. This is the cleanest image for the homepage because it has open dark space for text.
+- public/brand/background-pattern.png as a subtle repeating/section background.
+- public/brand/brand-banner-wide.png for homepage brand showcase or wide marketing sections.
+- public/brand/brand-cinematic-wide.png for the About page or cinematic brand section.
+- public/brand/social-banner-wide.png for social/media style sections only. It is busier, so do not place long text over it.
+- public/brand/og-image.png as the default social share/Open Graph image.
+
+Important image rules:
+Do not place important text directly over busy images unless there is a strong dark gradient overlay.
+Keep the website cleaner than the cinematic images.
+Use images for impact, but use readable dark cards for content.
+Optimize image loading with lazy loading where appropriate.
+Add useful alt text for every meaningful image.
+
+Colors:
+--bg: #030006;
+--bg-soft: #08000f;
+--bg-card: rgba(14, 8, 24, 0.82);
+--text: #ffffff;
+--text-muted: #b8aec8;
+--purple: #9b35ff;
+--purple-bright: #c084fc;
+--purple-deep: #4c0d86;
+--border-purple: rgba(155, 53, 255, 0.35);
+--glow-purple: rgba(155, 53, 255, 0.55);
+--cyan: #22d3ee;
+--green: #22c55e;
+--amber: #f59e0b;
+--red: #ef4444;
+
+Header:
+Create a polished sticky navbar with a dark translucent background, blur, subtle purple border, and the MarMar Labs logo. Use links:
+Home
+NeverGuess
+About
+Contact
+Privacy
+Terms
+
+Homepage:
+Create a premium homepage with:
+1. Sticky dark translucent navbar with the MarMar Labs logo.
+2. Hero section using public/brand/hero-clean.png.
+3. Headline:
+   AI-powered software tools that reduce guesswork.
+4. Subheadline:
+   MarMar Labs builds practical AI-powered software for builders, startups, and teams who want clearer decisions, safer workflows, and faster execution.
+5. CTA buttons:
+   Explore NeverGuess
+   Contact MarMar Labs
+6. Add the phrase:
+   Code. Build. Innovate.
+7. Add a “What we build” section with cards:
+   - AI Tools
+   - Developer Workflows
+   - Product Experiments
+   - Automation Systems
+8. Add a featured NeverGuess section.
+
+NeverGuess page:
+Make it a product landing page for:
+NeverGuess is an AI change-preflight tool designed to help builders inspect architecture, risk, tests, and deployment readiness before another coding agent changes the code.
+
+Sections:
+- AI Change Preflight
+- Architecture Awareness
+- Risk Detection
+- Test Readiness
+- Deployment Confidence
+
+Use dark dashboard cards, status pills, risk cards, architecture graph styling, terminal/code accents, and purple neon scan lines.
+
+About page:
+Use public/brand/brand-cinematic-wide.png as a cinematic visual with overlay.
+Explain that MarMar Labs is an early-stage software lab focused on AI tools, developer workflows, automation, and products that help people build with clarity and less guessing.
+
+Contact page:
+Keep it simple and professional. Add a clear contact form or contact CTA if already supported. Match the same dark/purple branding.
+
+Footer:
+Add logo, tagline, and links:
+Home
+NeverGuess
+About
+Contact
+Privacy
+Terms
+
+Legal pages:
+Keep Privacy and Terms readable. Do not over-design them. Just update the background, typography, and layout so they match the rest of the site.
+
+SEO:
+Home title: MarMar Labs | AI Software Tools
+Home description: MarMar Labs builds AI-powered software tools that reduce guesswork.
+NeverGuess title: NeverGuess | AI Change Preflight by MarMar Labs
+NeverGuess description: NeverGuess helps builders inspect risk, architecture, tests, and deployment readiness before AI-generated code changes.
+Use brand/og-image.png as the default social preview image if the framework supports Open Graph images.
+
+Requirements:
+- Inspect the current codebase first.
+- Keep the existing framework and routes/pages.
+- Do not remove Privacy or Terms.
+- Do not break the live domain setup.
+- Keep everything responsive on mobile, tablet, and desktop.
+- Use accessible contrast.
+- Add hover states, smooth transitions, and polished spacing.
+- Optimize images for fast loading.
+- Add alt text to images.
+- Do not add fake customers, fake metrics, fake testimonials, fake funding claims, or fake logos.
+- Run the available build/lint/test commands when done.
+- Tell me exactly what files changed and what I should review.

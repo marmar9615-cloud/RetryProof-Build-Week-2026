@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://marmarlabs.com/</loc><priority>1.0</priority></url>
+  <url><loc>https://marmarlabs.com/about</loc><priority>0.8</priority></url>
+  <url><loc>https://marmarlabs.com/security-research</loc><priority>0.7</priority></url>
+  <url><loc>https://marmarlabs.com/contact</loc><priority>0.8</priority></url>
+  <url><loc>https://marmarlabs.com/neverguess</loc><priority>0.9</priority></url>
+  <url><loc>https://marmarlabs.com/retryproof</loc><priority>0.9</priority></url>
+  <url><loc>https://marmarlabs.com/audits/new</loc><priority>0.9</priority></url>
+  <url><loc>https://marmarlabs.com/reports</loc><priority>0.8</priority></url>
+  <url><loc>https://marmarlabs.com/r/next-isr</loc><priority>0.7</priority></url>
+  <url><loc>https://marmarlabs.com/stui</loc><priority>0.8</priority></url>
+  <url><loc>https://marmarlabs.com/signai</loc><priority>0.8</priority></url>
+  <url><loc>https://marmarlabs.com/signai/privacy</loc><priority>0.3</priority></url>
+  <url><loc>https://marmarlabs.com/signai/terms</loc><priority>0.3</priority></url>
+  <url><loc>https://marmarlabs.com/signai/support</loc><priority>0.4</priority></url>
+  <url><loc>https://marmarlabs.com/pricing</loc><priority>0.9</priority></url>
+  <url><loc>https://marmarlabs.com/status</loc><priority>0.5</priority></url>
+  <url><loc>https://marmarlabs.com/changelog</loc><priority>0.6</priority></url>
+  <url><loc>https://marmarlabs.com/privacy</loc><priority>0.3</priority></url>
+  <url><loc>https://marmarlabs.com/terms</loc><priority>0.3</priority></url>
+</urlset>

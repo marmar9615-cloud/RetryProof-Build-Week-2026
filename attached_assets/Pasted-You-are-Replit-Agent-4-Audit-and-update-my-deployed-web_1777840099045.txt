@@ -1,0 +1,106 @@
+You are Replit Agent 4. Audit and update my deployed web app so it passes a startup-credit application review for AWS Activate.
+
+Current issue:
+AWS declined my Activate application because the company name in the application is "MarMar Labs", but the website currently looks like the product/app "NeverGuess" and does not clearly reflect MarMar Labs. Fix the branding and public company information without breaking the existing NeverGuess application.
+
+Current public URL:
+https://copilot-checker.replit.app
+
+Goal:
+The root homepage `/` must be a public company website for "MarMar Labs". "NeverGuess" should be presented as a product/app built by MarMar Labs, available from a nav tab/button and route such as `/neverguess` or `/app`.
+
+Do not invent fake traction, customers, revenue, funding, partnerships, or legal claims. Use truthful early-stage wording.
+
+Required changes:
+
+1. Company homepage at `/`
+   - Page title: "MarMar Labs | AI Software Tools"
+   - Hero heading: "MarMar Labs"
+   - Subheading: "AI-powered software tools that reduce guesswork."
+   - Intro copy:
+     "MarMar Labs is an early-stage Software & Internet startup based in Richfield, Minnesota. We build practical AI-powered web applications that help users make clearer decisions with less guesswork. Our first product is NeverGuess."
+   - Add a clear CTA button: "Open NeverGuess"
+   - Add a secondary CTA: "Contact MarMar Labs"
+
+2. Navigation
+   Add a top navbar with:
+   - MarMar Labs
+   - Home
+   - NeverGuess
+   - About
+   - Contact
+   - Privacy
+   - Terms
+
+3. Product route
+   - Move or preserve the existing NeverGuess app at `/neverguess` or `/app`.
+   - On the NeverGuess page, add visible text near the header/footer:
+     "NeverGuess is a MarMar Labs product."
+   - The browser title on the product page should be:
+     "NeverGuess | A MarMar Labs Product"
+   - Do not remove or break existing NeverGuess functionality.
+
+4. About page
+   Create `/about` with:
+   - Company name: MarMar Labs
+   - Industry: Software & Internet
+   - Location: Richfield, Minnesota, United States
+   - Founded: March 26, 2026, only if that is already represented as the correct founding date in the project/application context
+   - Team size: 1–10
+   - Founder: Marcel Jiron
+   - Product: NeverGuess
+   - Copy:
+     "MarMar Labs is a self-funded, early-stage startup building AI-powered web applications. Our current focus is NeverGuess, a web app designed to help users move from uncertainty to clear, explainable next steps."
+
+5. Contact page
+   Create `/contact` with:
+   - Contact heading: "Contact MarMar Labs"
+   - Add a business email placeholder like "contact@[your-company-domain]" or "founder@[your-company-domain]".
+   - Do not hardcode a personal phone number on the public site.
+   - Add a simple contact form only if the backend already supports it; otherwise use a mailto link.
+
+6. Footer
+   Add footer on every public page:
+   - "© 2026 MarMar Labs. All rights reserved."
+   - "NeverGuess is a MarMar Labs product."
+   - Links to Privacy, Terms, Contact.
+
+7. SEO and crawler-readability
+   - Make sure "MarMar Labs" appears in normal server-rendered or static HTML text, not only after client-side JavaScript.
+   - Add meta description:
+     "MarMar Labs builds AI-powered software tools, including NeverGuess, to help users make clearer decisions with less guesswork."
+   - Add Open Graph tags for title, description, and site name.
+   - Add JSON-LD structured data for Organization:
+     name = "MarMar Labs"
+     location = "Richfield, Minnesota, United States"
+     sameAs = [] unless there are verified company social profiles.
+   - Add JSON-LD structured data for SoftwareApplication:
+     name = "NeverGuess"
+     publisher = "MarMar Labs"
+   - Add `/robots.txt` that allows crawling.
+   - Add `/sitemap.xml` listing `/`, `/about`, `/contact`, `/neverguess` or `/app`, `/privacy`, `/terms`.
+
+8. Privacy and Terms pages
+   - Create simple truthful `/privacy` and `/terms` pages.
+   - Do not make legal claims beyond a basic early-stage app policy.
+   - Mention that MarMar Labs operates NeverGuess.
+
+9. Branding consistency
+   - Replace root-level "NeverGuess" branding with "MarMar Labs".
+   - Keep NeverGuess branding only on the product/app page.
+   - Ensure the favicon alt text, document title, footer, and metadata all reflect MarMar Labs on the root page.
+   - Use the exact spelling "MarMar Labs" everywhere.
+
+10. Quality checks
+   - Run the app locally.
+   - Test `/`, `/about`, `/contact`, `/neverguess` or `/app`, `/privacy`, `/terms`, `/robots.txt`, and `/sitemap.xml`.
+   - Confirm no broken links.
+   - Confirm mobile layout works.
+   - Confirm the existing NeverGuess app still works.
+   - Deploy the updated version.
+
+After implementation, give me a concise summary of:
+- Files changed
+- Routes added
+- How to verify that MarMar Labs appears publicly
+- Any remaining manual steps, especially custom domain and business email setup

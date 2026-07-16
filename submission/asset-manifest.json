@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "video": {
+    "path": "submission/video/retryproof-demo-final.mp4",
+    "bytes": 5466015,
+    "sha256": "48cc6e7b8ff50fe001aac253a804457759b8367faa28f387d634f77287650753",
+    "durationSeconds": 119.3,
+    "width": 1366,
+    "height": 768,
+    "videoCodec": "h264",
+    "audioCodec": "aac",
+    "sampleRate": 48000,
+    "channels": 1
+  },
+  "captions": {
+    "path": "submission/video/captions.srt",
+    "bytes": 1667,
+    "sha256": "79b61a6a9e2d1e3ce2486055c2f4c11e84c3c7b5781862892eade10bbbec2552",
+    "endSeconds": 119.3
+  },
+  "transcript": {
+    "path": "submission/video/transcript.md",
+    "bytes": 2431,
+    "sha256": "506cd6fa3afa67f8fb07e548c33ba6ce413a22df9b9ae08c8bf9ce33abcf69fc"
+  },
+  "thumbnail": {
+    "path": "submission/thumbnail/retryproof-thumbnail.png",
+    "bytes": 809202,
+    "sha256": "52f10b20476b9b9044b6b079b94569aee9d5fe58c735a92db4c44922d1c2fff6",
+    "width": 1280,
+    "height": 720
+  },
+  "screenshots": [
+    {
+      "path": "submission/screenshots/01-import.png",
+      "bytes": 302551,
+      "sha256": "af0ed935a316dabf3fd72b6036420ceb8eec14fcb42f866eb371d45b3a4da598",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "path": "submission/screenshots/02-contract.png",
+      "bytes": 347566,
+      "sha256": "b9c187063951b03c3ce792b37ba1ff23e37b8c6c737a154b04b3b980a3319f82",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "path": "submission/screenshots/03-red-counterexample.png",
+      "bytes": 337771,
+      "sha256": "081220fa3d446bfc7fd7799334199a20bde6361f728b79674849a63a426889b2",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "path": "submission/screenshots/04-codex-repair.png",
+      "bytes": 359298,
+      "sha256": "2c1a3fe37f1d0c78b5d1fe156371366e41425e336d7b0e125e0ebfcb0bd63bf2",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "path": "submission/screenshots/05-green-comparison.png",
+      "bytes": 389107,
+      "sha256": "dc60b1ddd84b9e829692ad2eceaed92eaed9b05ee1b7b0aaf92f60b0ce205c24",
+      "width": 1366,
+      "height": 768
+    },
+    {
+      "path": "submission/screenshots/06-evidence-receipt.png",
+      "bytes": 323067,
+      "sha256": "e915bb5a79c213ea06e8e017b3f91cf5cf532bc2da064944fa0bed8245a90c7d",
+      "width": 1366,
+      "height": 768
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 # RetryProof — OpenAI Build Week 2026
 
 > **Hosted judge path:** [marmarlabs.com/retryproof/lab](https://marmarlabs.com/retryproof/lab/)  
+> **Two-minute demo:** [youtu.be/4Oaie-WLKAc](https://youtu.be/4Oaie-WLKAc)
 > **Category:** Developer Tools  
 > **Production source:** single-history judge snapshot of integrated commit `2dd084c`
 
@@ -33,7 +34,7 @@ RetryProof is a workflow flight test for consequential n8n automations. It repro
 
 - Product page: `/retryproof`
 - Live judge lab: `/retryproof/lab` on [marmarlabs.com](https://marmarlabs.com/retryproof/lab)
-- Source repo: [marmar9615-cloud/Copilot-Checker](https://github.com/marmar9615-cloud/Copilot-Checker) (`artifacts/neverguess/src/pages/retryproof-lab.tsx`, `artifacts/api-server/src/routes/retryproof.ts`, and `artifacts/retryproof-codex-worker`)
+- Source repo: this public judge snapshot (`artifacts/neverguess/src/pages/retryproof-lab.tsx`, `artifacts/api-server/src/routes/retryproof.ts`, and `artifacts/retryproof-codex-worker`)
 
 RetryProof runs as a namespaced product inside this deployment. It does not use NeverGuess auth or billing. Its anonymous 24-hour sessions live in the dedicated `retryproof_sessions` table, admission counters live in `retryproof_admission_buckets`, and its API is isolated under `/api/retryproof/v1/*`.
 

@@ -46,6 +46,13 @@ const LIVE_REPAIR_STAGES = [
   { id: "deterministic_validation", label: "Deterministic gate" },
 ] as const;
 
+export const RAW_PATCH_CONTAINMENT_CLASSES = {
+  grid: "grid min-w-0 gap-4 md:grid-cols-[1fr_1.2fr]",
+  details: "min-w-0 max-w-full overflow-hidden rounded-xl border border-violet-950 bg-[#0b0a12] text-violet-100",
+  pre: "max-h-72 max-w-full overflow-x-auto border-t border-violet-800 p-4 text-[11px] leading-relaxed",
+  code: "block w-max min-w-full whitespace-pre",
+} as const;
+
 type LiveRepairStage = typeof LIVE_REPAIR_STAGES[number]["id"];
 type LiveRepairEvent = {
   stage: LiveRepairStage;
@@ -653,7 +660,7 @@ export default function RetryProofLab() {
           </Panel>
         ) : (
           <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-            <div className="space-y-6">
+            <div className="min-w-0 space-y-6">
               <div ref={importStepRef} className="scroll-mt-24">
                 <Panel className="p-6 md:p-8">
                 <div className="flex items-start justify-between gap-4">
@@ -847,11 +854,11 @@ export default function RetryProofLab() {
                           ? ` Fresh Codex thread ${state.repair.provenance.threadId.slice(0, 12)}… completed in ${state.repair.provenance.attempts ?? 1} attempt.`
                           : " The fallback is not represented as a fresh Codex run."} The patch, repaired graph, source binding, secret scan, and replay are validated live before a green result is possible.
                       </p>
-                      <div className="grid gap-4 md:grid-cols-[1fr_1.2fr]">
+                      <div className={RAW_PATCH_CONTAINMENT_CLASSES.grid}>
                         <div className="rounded-xl border border-border bg-background/70 p-4"><div className="text-xs text-muted-foreground">Changed nodes</div><div className="mt-3 flex flex-wrap gap-2">{state.repair.changedNodeIds.map((id) => <span key={id} className="rounded-md bg-secondary px-2 py-1 font-mono text-xs">{id}</span>)}</div><div className="mt-4 text-xs text-muted-foreground">Validator checks</div><ul className="mt-2 space-y-1.5">{state.repair.validation.checks.map((check) => <li key={check} className="flex items-center gap-2 text-xs" title={`Internal check ID: ${check}`}><Check className="h-3.5 w-3.5 text-emerald-600" /><span>{validatorCheckLabel(check)}</span></li>)}</ul></div>
-                        <details className="rounded-xl border border-violet-950 bg-[#0b0a12] text-violet-100">
+                        <details className={RAW_PATCH_CONTAINMENT_CLASSES.details}>
                           <summary className="cursor-pointer px-4 py-3 text-xs font-semibold">Inspect raw JSON patch</summary>
-                          <pre className="max-h-72 overflow-auto border-t border-violet-800 p-4 text-[11px] leading-relaxed"><code>{JSON.stringify(state.repair.patch, null, 2)}</code></pre>
+                          <pre className={RAW_PATCH_CONTAINMENT_CLASSES.pre}><code className={RAW_PATCH_CONTAINMENT_CLASSES.code}>{JSON.stringify(state.repair.patch, null, 2)}</code></pre>
                         </details>
                       </div>
                       {!state.after && <Button onClick={() => void recheck()} disabled={busy !== null}>Replay the identical suite <GitCompareArrows className="h-4 w-4" /></Button>}
@@ -893,7 +900,7 @@ export default function RetryProofLab() {
               )}
             </div>
 
-            <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+            <aside className="min-w-0 space-y-4 lg:sticky lg:top-24 lg:self-start">
               <Panel className="p-5">
                 <div className="flex items-center gap-2"><LockKeyhole className="h-5 w-5 text-primary" /><h2 className="font-semibold">Execution boundary</h2></div>
                 <ul className="mt-4 space-y-3 text-sm text-muted-foreground">

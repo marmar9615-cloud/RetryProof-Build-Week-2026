@@ -7,7 +7,7 @@ import {
   validatorCheckLabel,
   workflowPaths,
 } from "../retryproof-proof-flight-recorder";
-import { analysisBadgeLabel, stageFor } from "../retryproof-lab";
+import { analysisBadgeLabel, RAW_PATCH_CONTAINMENT_CLASSES, stageFor } from "../retryproof-lab";
 
 type ProgressState = Parameters<typeof stageFor>[0];
 
@@ -113,5 +113,14 @@ describe("RetryProof lab progress", () => {
     expect(seededSyntheticStake({ demoSeed: true, fixture: { event: { amount: 4200 } } })).toBe("$42");
     expect(seededSyntheticStake({ demoSeed: false, fixture: { event: { amount: 4200 } } })).toBeNull();
     expect(seededSyntheticStake({ demoSeed: true, fixture: { event: { amount: "4200" } } })).toBeNull();
+  });
+
+  it("contains raw patch intrinsic width inside a local horizontal scroller", () => {
+    expect(RAW_PATCH_CONTAINMENT_CLASSES.grid).toContain("min-w-0");
+    expect(RAW_PATCH_CONTAINMENT_CLASSES.details).toContain("min-w-0");
+    expect(RAW_PATCH_CONTAINMENT_CLASSES.details).toContain("overflow-hidden");
+    expect(RAW_PATCH_CONTAINMENT_CLASSES.pre).toContain("max-w-full");
+    expect(RAW_PATCH_CONTAINMENT_CLASSES.pre).toContain("overflow-x-auto");
+    expect(RAW_PATCH_CONTAINMENT_CLASSES.code).toContain("w-max");
   });
 });

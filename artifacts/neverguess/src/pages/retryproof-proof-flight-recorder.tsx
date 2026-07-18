@@ -157,7 +157,7 @@ function GraphCard({
   const paths = workflowPaths(canonical);
   const pathSummary = paths.map((path, index) => `Path ${index + 1}: ${path.map((node) => node.name).join(" then ")}.`).join(" ");
   return (
-    <section className="rounded-2xl border border-border bg-background/80 p-4" aria-label={`${title} workflow graph`}>
+    <section className="min-w-0 max-w-full rounded-2xl border border-border bg-background/80 p-4" aria-label={`${title} workflow graph`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm font-semibold"><Route className="h-4 w-4 text-primary" />{title}</div>
         <span className={cn(
@@ -168,7 +168,7 @@ function GraphCard({
           {execution.passed ? "GREEN" : "RED"} · {execution.effectCount} effect{execution.effectCount === 1 ? "" : "s"}
         </span>
       </div>
-      <div className="mt-4 space-y-3 overflow-x-auto pb-1">
+      <div className="mt-4 max-w-full space-y-3 overflow-x-auto pb-1">
         <p className="sr-only">{pathSummary}</p>
         {paths.map((path, pathIndex) => (
           <div key={`${title}-${pathIndex}`} className="min-w-max rounded-xl border border-border/70 bg-card p-3">
@@ -244,7 +244,7 @@ export function ProofFlightRecorder({
   };
 
   return (
-    <div className="space-y-6" data-testid="proof-flight-recorder">
+    <div className="min-w-0 max-w-full space-y-6" data-testid="proof-flight-recorder">
       <div className="rounded-2xl border border-violet-200 bg-violet-50/60 p-5 md:p-6">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
           <div>
@@ -269,7 +269,7 @@ export function ProofFlightRecorder({
         </div>
       </div>
 
-      <section className="overflow-hidden rounded-2xl border border-border" aria-labelledby="proof-scenario-matrix">
+      <section className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-border" aria-labelledby="proof-scenario-matrix">
         <div className="border-b border-border bg-secondary/40 px-4 py-3">
           <h3 id="proof-scenario-matrix" className="font-semibold">Four-scenario proof matrix</h3>
           <p className="mt-1 text-xs text-muted-foreground">Paired by durable scenario ID; each row compares the same declared fault before and after repair.</p>

@@ -87,6 +87,7 @@ describe("RetryProof deterministic engine", () => {
   it("reproduces the duplicate effect, validates the bounded repair, and passes the identical suite", () => {
     const workflow = createSeededWorkflow();
     const analysis = proposeCachedRiskPlan(workflow);
+    expect(analysis.provenance.sourceCommit).toBe("2dd084ccae57f54300e959ff444ba976f5d1b78f");
     const approved = approveRiskPlan(analysis, {
       planHash: analysis.planHash,
       statement: analysis.invariant.statement,

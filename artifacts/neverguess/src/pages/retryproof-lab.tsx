@@ -28,6 +28,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { RETRYPROOF } from "@/data/retryproof";
 import { useMetaTags } from "@/lib/use-meta-tags";
 import { cn } from "@/lib/utils";
+import {
+  ProofFlightRecorder,
+  repairProvenanceLabel,
+  seededSyntheticStake,
+  validatorCheckLabel,
+  type ProofCanonical,
+} from "./retryproof-proof-flight-recorder";
 
 const API = "/api/retryproof/v1";
 const STEPS = ["Import", "Contract", "Break", "Repair", "Evidence"] as const;
@@ -51,7 +58,7 @@ type Workflow = {
   name: string;
   sourceHash: string;
   demoSeed: boolean;
-  canonical: { nodes: Array<{ id: string; name: string; type: string }>; connections: Record<string, unknown> };
+  canonical: ProofCanonical;
   compatibility: { canExecute: boolean; coverage: { supported: number; total: number }; unsupportedNodeIds: string[] };
   credentialReferencesRemoved: number;
   fixture: Record<string, unknown>;
@@ -78,6 +85,7 @@ type Analysis = {
 
 type Execution = {
   id: string;
+  analysisId: string;
   phase: "before" | "after";
   seed: string;
   suiteHash: string;
@@ -86,16 +94,21 @@ type Execution = {
   effectKey: string;
   deliveries: number;
   scenarioId: string;
+  workflowHash: string;
   traces: Array<{ delivery: number; event: string; detail: string; effectCount: number }>;
   scenarioResults: Array<{ scenarioId: string; label: string; faultPhase: string; passed: boolean; effectCount: number; traces: Execution["traces"] }>;
 };
 
 type Repair = {
   id: string;
+  sourceHash: string;
+  repairedWorkflowHash: string;
   strategy: string;
   changedNodeIds: string[];
   explanation: string;
   patch: Array<{ op: string; path: string; value: unknown }>;
+  patchedCanonical: ProofCanonical;
+  regressionFixture: { seed: string; scenarioIds: string[]; invariantId: string; sourceSuiteHash: string };
   validation: { passed: true; checks: string[] };
   provenance: {
     mode: "cached" | "bounded-template" | "live-codex";
@@ -114,11 +127,17 @@ type Artifact = {
   id: string;
   sha256: string;
   receipt: {
+    schemaVersion: string;
     claim: string;
+    workflow: { id: string; name: string; sourceHash: string };
+    invariant: Record<string, unknown>;
+    scenario: { ids: string[]; seed: string; deliveries: number };
     before: { passed: boolean; effectCount: number; suiteHash: string };
     after: { passed: boolean; effectCount: number; suiteHash: string };
+    repair: { strategy: string; changedNodeIds: string[]; sourceHash: string; repairedWorkflowHash: string };
     modelArtifacts: { analysis: string; repair: string; deterministicValidation: string };
     limitations: string[];
+    generatedAt: string;
   };
 };
 
@@ -171,6 +190,13 @@ function analysisProvenanceLabel(mode: Analysis["provenance"]["mode"]): string {
   if (mode === "live") return "Live GPT-5.6 proposal";
   if (mode === "deterministic-fallback") return "Grounded deterministic fallback";
   return "GPT-5.6-informed seeded contract";
+}
+
+export function analysisBadgeLabel(mode?: Analysis["provenance"]["mode"]): string {
+  if (mode === "live") return "Live GPT-5.6";
+  if (mode === "cached") return "Seeded · cached";
+  if (mode === "deterministic-fallback") return "Grounded fallback";
+  return "Proposal only";
 }
 
 export function stageFor(state: LabState): number {
@@ -246,6 +272,7 @@ export default function RetryProofLab() {
 
   const step = stageFor(state);
   const analysis = state.approved ?? state.analysis;
+  const syntheticStake = seededSyntheticStake(state.workflow);
 
   useEffect(() => {
     let cancelled = false;
@@ -560,7 +587,10 @@ export default function RetryProofLab() {
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 md:py-12">
         <section className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
           <div>
-            <div className="eyebrow text-primary">Workflow flight test · anonymous judge path</div>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="eyebrow text-primary">Workflow flight test · anonymous judge path</div>
+              {syntheticStake && <LabelPill tone="red">Seeded demo · synthetic {syntheticStake} refund</LabelPill>}
+            </div>
             <h1 className="mt-3 max-w-4xl text-balance font-display text-4xl font-semibold tracking-tight md:text-6xl">
               Reproduce the retry bug. Repair it. Prove the same scenario turns green.
             </h1>
@@ -701,7 +731,7 @@ export default function RetryProofLab() {
                     The statement is cryptographically bound to the analyzed oracle. Re-analyze to test a different contract.
                   </p>
                   <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                    {analysis.provenance.label} The canonical implementation and verification path are recorded at{" "}
+                    {analysis.provenance.label} The submitted Build Week baseline and verification path are recorded at{" "}
                     <a className="font-mono font-medium text-primary underline-offset-4 hover:underline" href={`${analysis.provenance.sourceRepository}/commit/${analysis.provenance.sourceCommit}`} target="_blank" rel="noreferrer">
                       {analysis.provenance.sourceCommit.slice(0, 8)}
                     </a>. GPT proposes; the human approves; the deterministic validator owns the verdict.
@@ -746,9 +776,9 @@ export default function RetryProofLab() {
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div><div className="eyebrow text-primary">04 · Bounded repair</div><h2 className="mt-2 text-2xl font-semibold">Bind a repair to the failing proof</h2></div>
                     <LabelPill tone={state.repair?.provenance.mode === "live-codex" ? "green" : "amber"}>
-                      {state.repair?.provenance.mode === "live-codex"
-                        ? "Fresh Codex · validators live"
-                        : readiness.liveCodexConfigured ? RETRYPROOF.repairModeLabel : "Validated fallback available"}
+                      {state.repair
+                        ? repairProvenanceLabel(state.repair.provenance.mode)
+                          : readiness.liveCodexConfigured ? RETRYPROOF.repairModeLabel : "Validated fallback available"}
                     </LabelPill>
                   </div>
                   {!state.repair ? (
@@ -810,7 +840,7 @@ export default function RetryProofLab() {
                     <div className="mt-6 space-y-4">
                       <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4"><div className="flex items-center gap-2 font-semibold text-emerald-900"><CheckCircle2 className="h-5 w-5" />Repair artifact validated</div><p className="mt-2 text-sm leading-relaxed text-emerald-900/80">{state.repair.explanation}</p></div>
                       <p className="text-xs leading-relaxed text-muted-foreground">
-                        {state.repair.provenance.label} The canonical implementation is recorded at{" "}
+                        {state.repair.provenance.label} The submitted Build Week baseline is recorded at{" "}
                         <a className="font-mono font-medium text-primary underline-offset-4 hover:underline" href={`${state.repair.provenance.sourceRepository}/commit/${state.repair.provenance.sourceCommit}`} target="_blank" rel="noreferrer">
                           {state.repair.provenance.sourceCommit.slice(0, 8)}
                         </a>. {state.repair.provenance.mode === "live-codex" && state.repair.provenance.threadId
@@ -818,8 +848,11 @@ export default function RetryProofLab() {
                           : " The fallback is not represented as a fresh Codex run."} The patch, repaired graph, source binding, secret scan, and replay are validated live before a green result is possible.
                       </p>
                       <div className="grid gap-4 md:grid-cols-[1fr_1.2fr]">
-                        <div className="rounded-xl border border-border bg-background/70 p-4"><div className="text-xs text-muted-foreground">Changed nodes</div><div className="mt-3 flex flex-wrap gap-2">{state.repair.changedNodeIds.map((id) => <span key={id} className="rounded-md bg-secondary px-2 py-1 font-mono text-xs">{id}</span>)}</div><div className="mt-4 text-xs text-muted-foreground">Validator checks</div><ul className="mt-2 space-y-1.5">{state.repair.validation.checks.map((check) => <li key={check} className="flex items-center gap-2 font-mono text-xs"><Check className="h-3.5 w-3.5 text-emerald-600" />{check}</li>)}</ul></div>
-                        <pre className="max-h-72 overflow-auto rounded-xl border border-violet-950 bg-[#0b0a12] p-4 text-[11px] leading-relaxed text-violet-100"><code>{JSON.stringify(state.repair.patch, null, 2)}</code></pre>
+                        <div className="rounded-xl border border-border bg-background/70 p-4"><div className="text-xs text-muted-foreground">Changed nodes</div><div className="mt-3 flex flex-wrap gap-2">{state.repair.changedNodeIds.map((id) => <span key={id} className="rounded-md bg-secondary px-2 py-1 font-mono text-xs">{id}</span>)}</div><div className="mt-4 text-xs text-muted-foreground">Validator checks</div><ul className="mt-2 space-y-1.5">{state.repair.validation.checks.map((check) => <li key={check} className="flex items-center gap-2 text-xs" title={`Internal check ID: ${check}`}><Check className="h-3.5 w-3.5 text-emerald-600" /><span>{validatorCheckLabel(check)}</span></li>)}</ul></div>
+                        <details className="rounded-xl border border-violet-950 bg-[#0b0a12] text-violet-100">
+                          <summary className="cursor-pointer px-4 py-3 text-xs font-semibold">Inspect raw JSON patch</summary>
+                          <pre className="max-h-72 overflow-auto border-t border-violet-800 p-4 text-[11px] leading-relaxed"><code>{JSON.stringify(state.repair.patch, null, 2)}</code></pre>
+                        </details>
                       </div>
                       {!state.after && <Button onClick={() => void recheck()} disabled={busy !== null}>Replay the identical suite <GitCompareArrows className="h-4 w-4" /></Button>}
                     </div>
@@ -842,7 +875,19 @@ export default function RetryProofLab() {
                     <div className="grid place-items-center bg-card px-6 py-3"><ArrowRight className="h-6 w-6 text-muted-foreground" /></div>
                     <div className="bg-card p-6 text-center"><LabelPill tone="green">AFTER · GREEN</LabelPill><div className="mt-4 font-display text-6xl font-semibold text-emerald-600">{state.after.effectCount}</div><div className="mt-2 text-sm text-muted-foreground">maximum mock effects for {state.after.effectKey}</div></div>
                   </div>
-                  <div className="p-6 md:p-8"><TraceList execution={state.after} /><div className="mt-5 rounded-xl border border-border bg-background/70 p-4"><div className="text-xs font-semibold text-muted-foreground">Evidence receipt SHA-256</div><div className="mt-2 break-all font-mono text-xs">{state.artifact.sha256}</div></div></div>
+                  <div className="p-6 md:p-8">
+                    <ProofFlightRecorder
+                      sourceCanonical={state.workflow!.canonical}
+                      sourceHash={state.workflow!.sourceHash}
+                      planHash={state.approved!.planHash}
+                      effectNodeId={state.approved!.sideEffect.nodeId}
+                      before={state.before!}
+                      repair={state.repair!}
+                      after={state.after}
+                      artifact={{ sha256: state.artifact.sha256, receipt: state.artifact.receipt }}
+                    />
+                    <div className="mt-6"><div className="mb-3 text-xs font-semibold text-muted-foreground">Primary repaired trace</div><TraceList execution={state.after} /></div>
+                  </div>
                   </Panel>
                 </div>
               )}
@@ -858,7 +903,7 @@ export default function RetryProofLab() {
               <Panel className="p-5">
                 <div className="eyebrow text-primary">Who owns the verdict?</div>
                 <div className="mt-4 space-y-3">
-                  <div className="rounded-lg border border-border p-3"><div className="flex items-center justify-between gap-2 text-sm font-semibold">GPT-5.6 <LabelPill tone={analysis?.provenance.mode === "live" ? "green" : "amber"}>{analysis?.provenance.mode === "live" ? "Live" : "Fallback labeled"}</LabelPill></div><p className="mt-1 text-xs leading-relaxed text-muted-foreground">Proposes a structured effect, key, and invariant when configured; every citation is checked against the sanitized graph and fixture.</p></div>
+                  <div className="rounded-lg border border-border p-3"><div className="flex items-center justify-between gap-2 text-sm font-semibold">GPT-5.6 <LabelPill tone={analysis?.provenance.mode === "live" ? "green" : analysis ? "amber" : "neutral"}>{analysisBadgeLabel(analysis?.provenance.mode)}</LabelPill></div><p className="mt-1 text-xs leading-relaxed text-muted-foreground">Proposes a structured effect, key, and invariant when configured; every citation is checked against the sanitized graph and fixture.</p></div>
                   <div className="rounded-lg border border-border p-3"><div className="flex items-center justify-between gap-2 text-sm font-semibold">Human <LabelPill tone="iris">Approval</LabelPill></div><p className="mt-1 text-xs leading-relaxed text-muted-foreground">Reviews and explicitly approves the invariant before testing.</p></div>
                   <div className="rounded-lg border border-border p-3"><div className="flex items-center justify-between gap-2 text-sm font-semibold">Codex <LabelPill tone={readiness.liveCodexConfigured ? "green" : "amber"}>{readiness.liveCodexConfigured ? "Live worker" : "Fallback only"}</LabelPill></div><p className="mt-1 text-xs leading-relaxed text-muted-foreground">When available, a fresh Codex SDK thread writes the bounded patch in an isolated worker. RetryProof accepts it only after exact structural, source, fixture, secret, and deterministic replay validation.</p></div>
                   <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3"><div className="flex items-center justify-between gap-2 text-sm font-semibold text-emerald-900">Simulator + validators <LabelPill tone="green">Live</LabelPill></div><p className="mt-1 text-xs leading-relaxed text-emerald-900/75">Own every red/green result and receipt.</p></div>

@@ -18,7 +18,7 @@ const DANGEROUS_PATH_FIELD = /^(?:__proto__|prototype|constructor)$/;
 const MAX_JSON_DEPTH = 64;
 const MAX_JSON_VALUES = 10_000;
 const CANONICAL_SOURCE_REPOSITORY = "https://github.com/marmar9615-cloud/Copilot-Checker";
-const CANONICAL_SOURCE_COMMIT = "6be402f1f8a5afffeb725bfe6b51eaf6cd020d7e";
+const CANONICAL_SOURCE_COMMIT = "2dd084ccae57f54300e959ff444ba976f5d1b78f";
 const POSTGRES_RESERVATION_QUERY = `
 INSERT INTO retryproof_idempotency_reservations
   (workflow_id, invariant_id, entity_key)

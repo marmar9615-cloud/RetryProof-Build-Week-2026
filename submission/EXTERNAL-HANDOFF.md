@@ -6,7 +6,7 @@ Everything below changes external state. Do not perform an applicable step until
 
 - Integrated personal-account source is at `6a1640b` (`marmar9615-cloud/Copilot-Checker`): Proof Flight Recorder plus mobile containment.
 - The public app readiness endpoint reports live GPT-5.6 and live Codex configured, and the hosted anonymous red-to-green path passed with a fresh Codex thread.
-- The public judge snapshot is `https://github.com/marmar9615-cloud/RetryProof-Build-Week-2026`; immutable feature commits are recorded in `submission/VERIFICATION.md`.
+- The public judge snapshot is `https://github.com/marmar9615-cloud/RetryProof-Build-Week-2026`; immutable feature and proof-package commits are recorded in `submission/VERIFICATION.md`.
 - The final 1:59.300 demo is public at `https://youtu.be/4Oaie-WLKAc`.
 - Majority-core Codex `/feedback` Session ID: `019f5e19-b54f-7862-8023-f0f4251a5a0f`.
 - Devpost is submitted at `https://devpost.com/software/retryproof`; its Proof Flight Recorder description, gallery image, caption, and contributor statement were rechecked after the release.

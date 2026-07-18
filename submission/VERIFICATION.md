@@ -50,6 +50,7 @@ Verified on **July 17, 2026 CDT**. This file keeps local, source-control, produc
 
 - Public judge snapshot: `https://github.com/marmar9615-cloud/RetryProof-Build-Week-2026`.
 - Feature snapshot commits: `999889e` (recorder) and `265b381` (mobile containment).
+- Documentation and media proof-package commit: `9d9fa71`.
 - The snapshot is a clean, single-history judge package under the personal `marmar9615-cloud` account; anonymous raw-file access returned HTTP 200 and a redacted gitleaks scan found zero findings.
 - Public demo video: `https://youtu.be/4Oaie-WLKAc`.
 - Anonymous YouTube page and oEmbed checks returned HTTP 200 with the expected title, MarMar Labs channel, and custom thumbnail.

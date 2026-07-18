@@ -4,12 +4,12 @@ Everything below changes external state. Do not perform an applicable step until
 
 ## Current release state
 
-- The private-worker implementation is merged at integrated commit `2dd084c`, and both Replit deployments are healthy.
-- The public app readiness endpoint reports live GPT-5.6 and live Codex configured.
-- The public judge snapshot is `https://github.com/marmar9615-cloud/RetryProof-Build-Week-2026` at commit `14891f0666c72ace985351f3f8bdbfb32dc6fe3d`.
+- Integrated personal-account source is at `6a1640b` (`marmar9615-cloud/Copilot-Checker`): Proof Flight Recorder plus mobile containment.
+- The public app readiness endpoint reports live GPT-5.6 and live Codex configured, and the hosted anonymous red-to-green path passed with a fresh Codex thread.
+- The public judge snapshot is `https://github.com/marmar9615-cloud/RetryProof-Build-Week-2026`; immutable feature commits are recorded in `submission/VERIFICATION.md`.
 - The final 1:59.300 demo is public at `https://youtu.be/4Oaie-WLKAc`.
 - Majority-core Codex `/feedback` Session ID: `019f5e19-b54f-7862-8023-f0f4251a5a0f`.
-- The remaining external state is the Devpost submitted confirmation.
+- Devpost is submitted at `https://devpost.com/software/retryproof`; its Proof Flight Recorder description, gallery image, caption, and contributor statement were rechecked after the release.
 
 ## Prepared production topology
 
@@ -75,17 +75,21 @@ Replit production External Access Tokens are tied to a published deployment. Eve
 3. Analyze and approve the at-most-once refund invariant.
 4. Run the four-scenario suite and confirm the timeout trace is red with two mock effects.
 5. Select **Repair with live Codex** and verify the UI shows elapsed time, progress bar, five stages, and signed event-feed updates for the entire run (typically one to three minutes, up to about six within the enforced budget) without appearing frozen.
-6. Confirm the accepted repair provenance says **Fresh Codex**, contains a truncated thread ID and attempt count, and links to the exact implementation commit.
+6. Confirm the accepted repair provenance says **Fresh Codex**, contains a truncated thread ID and attempt count, and links to the submitted baseline commit.
 7. Replay the identical suite and confirm the same event, seed, scenario, and two deliveries are green with one mock effect.
 8. Download the evidence artifact and verify its analysis, repair, and deterministic-validation provenance.
 9. Repeat the entire flow once in a second clean private window and inspect Replit logs for crashes, credential output, unhandled rejections, or timeouts.
 10. Test the clearly labeled validated fallback separately; it must never claim a fresh Codex run.
 
-## Repository, video, and Devpost order
+## Future public-app release order
 
-1. Re-run `npm run submission:final-audit`, the secret scan, repository URL checks, and production health checks.
-2. Populate Devpost from `submission/DEVPOST.md`, attach the thumbnail, and verify the under-three-minute public video is embedded.
-3. Submit under the user's explicit authorization, then capture the confirmation state and preserve the exact submitted copy.
+1. Run the repository's pnpm 9.x test/typecheck/build commands, a redacted secret scan, URL checks, and production health checks.
+2. Pull the reviewed personal-account commit into the public Copilot Checker Replit workspace and verify the intended artifact selection before publishing.
+3. Republish only the public app. Monitor `marmarlabs.com`, `/api/healthz`, `/api/retryproof/v1/ready`, and `/retryproof/lab/` through the rollout and roll back immediately if any route stops returning healthy responses.
+4. Re-run the anonymous no-account judge path and verify provenance labels, responsive containment, and the evidence receipt.
+5. Update the existing Devpost project and public judge package only after production evidence is current.
+
+Do not republish the private worker for an ordinary public-app release. If the private worker itself must be republished, follow the deployment-token rotation sequence above before calling live repair healthy.
 
 ## Deadline controls
 

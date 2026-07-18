@@ -3,20 +3,56 @@
 > **Hosted judge path:** [marmarlabs.com/retryproof/lab](https://marmarlabs.com/retryproof/lab/)  
 > **Two-minute demo:** [youtu.be/4Oaie-WLKAc](https://youtu.be/4Oaie-WLKAc)
 > **Category:** Developer Tools  
-> **Production source:** single-history judge snapshot of integrated commit `2dd084c`
+> **Production source:** submitted baseline `2dd084c`; reviewed Proof Flight Recorder release `9f8a2d6` plus mobile containment fix `6a1640b`
 
 RetryProof reproduces a retry-sensitive automation failure, asks GPT-5.6 to propose a grounded reliability contract, requires human approval, and lets a fresh Codex SDK thread prepare one bounded repair. Deterministic validators—not either model—own every red or green verdict.
 
-### Five-minute judge path
+### No-account judge path
 
 1. Open the hosted lab; no account or rebuild is required.
 2. Select **Load seeded workflow**, then **Analyze retry risk**. Loading alone stays on Import.
 3. Inspect the explicitly labeled seeded GPT-5.6-informed contract and approve the at-most-once invariant.
 4. Run the deterministic suite and inspect the red timeout trace: one event, two deliveries, two mock effects.
-5. Select **Repair with live Codex** once and allow the private worker to finish.
-6. Replay the identical suite and inspect `2 → 1`, the evidence receipt, and the explicit claim limitation.
+5. Select **Repair with live Codex** once and allow the private worker to finish (typically 1–3 minutes, up to about 6 within the fail-closed budget).
+6. Replay the identical suite and inspect `2 → 1` in the data-derived Proof Flight Recorder, the evidence receipt, and the explicit claim limitation.
 
 The seeded analysis is deliberately cached and labeled for reproducibility; supported custom uploads exercise the live GPT-5.6 path. RetryProof never executes uploaded workflow code, makes real payment/network/SQL/shell calls, or claims production exactly-once safety.
+
+![Proof Flight Recorder showing accepted source and repaired graph paths, the red two-effect to green one-effect result, and the bounded patch summary](submission/screenshots/07-proof-flight-recorder.png)
+
+| Same declared run | Before repair | After accepted repair |
+| --- | ---: | ---: |
+| Synthetic deliveries | 2 | 2 |
+| Mock refund effects for one event | 2 | 1 |
+| Human-approved at-most-once invariant | **Fail** | **Pass** |
+| Real external actions | 0 | 0 |
+
+### Why this is more than a webhook mock
+
+A request replay alone can show that an endpoint was called twice. RetryProof tracks business-keyed effects across four declared fault phases, binds an accepted repair to the exact failing source and fixture, translates the patched graph, and reruns the identical schedule under a deterministic oracle. The models help discover and repair the contract; they never get to declare success.
+
+### Hosted architecture and trust boundary
+
+```mermaid
+flowchart LR
+    B["Anonymous judge browser"] --> P["Public React and Express app"]
+    P --> G["GPT-5.6 grounded contract proposal"]
+    G --> H["Human approval"]
+    H --> S["Deterministic simulator and oracle"]
+    S -->|"RED fixture"| P
+    P -->|"deployment token plus HMAC"| W["Private Replit Codex worker"]
+    W --> C["Fresh high-reasoning Codex SDK thread"]
+    C --> V["Patch, source, fixture, secret, and replay validators"]
+    V -->|"signed events and bounded candidate"| P
+    P --> S
+    S --> E["SHA-256 evidence receipt"]
+```
+
+The worker receives no application database, billing, GitHub, or auth credentials. `credential-proxy.ts` gives each run a per-run ephemeral loopback credential proxy. The inline JSON input envelope escapes `<` as `\\u003c` so untrusted node text cannot close its data fence. The regression fixture is bound by trusted worker code and is deliberately excluded from the model output schema. Codex runs at high reasoning in a read-only sandbox with network, web search, and interactive approval disabled. Ordered fail-closed limits keep the 300s proxy, 330s turn abort, 345s hard-settle deadline, 360s public client, and 390s live test from racing each other.
+
+### How Codex accelerated the build
+
+Codex was used throughout the product, not as a final code generator: importer and simulator implementation, strict schemas, repair-contract design, private-worker debugging, regression tests, Replit deployment recovery, documentation, and production verification. The final recorder release used deliberately separate roles: one implementation agent wrote the bounded diff, an independent technical/security agent challenged data binding and untrusted-graph traversal, and a separate judge-experience agent challenged the visible claims and story. The false first draft phrase “cryptographic proof chain” was rejected because the receipt does not directly include the displayed plan hash; the shipped UI honestly calls them independent **Evidence references**. Deterministic tests and independent review—not the authoring agent’s preference—decided whether the change could merge.
 
 ## Production monorepo
 

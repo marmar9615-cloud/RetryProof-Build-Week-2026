@@ -12,14 +12,15 @@
 8. Select **Repair with live Codex**. Watch the elapsed timer, progress bar, five-stage status row, and signed event feed. A fresh run typically takes one to three minutes and can take up to about six; the timer and signed events keep updating the whole time.
 9. Confirm the accepted artifact says **Fresh Codex**, shows a truncated thread identifier and attempt count, and lists the deterministic validator checks.
 10. Select **Replay the identical suite** and confirm the same event, scenario, seed, and two deliveries now produce one refund effect and **Pass**.
-11. Select **Download evidence ZIP** and inspect its patch, provenance, before/after hashes, and limitations.
+11. Inspect the **Proof Flight Recorder**. Its before/after workflow paths, four-scenario matrix, changed nodes, and evidence references are derived from the accepted run data; the graph also has a text alternative and the raw JSON patch remains available as a disclosure.
+12. Select **Download evidence ZIP** and inspect its patch, provenance, before/after hashes, and limitations.
 
 Expected completion time: typically three to five minutes after the page loads, and up to about eight if the fresh Codex run uses its full budget.
 
 ## Supported platforms
 
 - Hosted judge path: current Safari, Chrome, Edge, or Firefox with JavaScript enabled.
-- Source development: Node.js 20+ on macOS or Linux.
+- Source development: Node.js 20.x and pnpm 9.x on macOS or Linux.
 - Production persistence: PostgreSQL 15+.
 - Input: pinned supported n8n declarative workflow JSON up to 1 MiB.
 
@@ -32,12 +33,4 @@ Expected completion time: typically three to five minutes after the page loads, 
 
 ## If the hosted path is unavailable
 
-Use the public video and screenshots first. The source repository contains the public product, API, worker, tests, and setup instructions. The separate reference implementation and submission pack can also run a deterministic cached path locally with:
-
-```bash
-npm ci
-cp .env.example .env.local
-npm run dev
-```
-
-No OpenAI key or PostgreSQL instance is required for the cached synthetic judge path.
+Use the public video and current Proof Flight Recorder screenshot first. The source repository contains the product, API, worker, tests, and exact setup instructions. A local rebuild is optional and follows the root README; it requires Node.js 20.x, pnpm 9.x, and PostgreSQL. The judge path is designed so a local rebuild is not required.

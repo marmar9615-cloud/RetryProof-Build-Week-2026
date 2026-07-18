@@ -26,7 +26,7 @@ One lost webhook response can make an automation repeat a consequential side eff
 
 ### The problem
 
-Automation retries are necessary, but a response can disappear after a consequential write already succeeded. When the delivery is retried, an apparently healthy workflow can repeat a refund, notification, provisioning action, or back-office mutation. Happy-path testing rarely makes this failure visible, while broad claims such as “exactly once” are not defensible without system-specific assumptions.
+Automation retries are necessary, but a response can disappear after a consequential write already succeeded. When the delivery is retried, an apparently healthy workflow can repeat a refund, notification, provisioning action, or back-office mutation. This is not hypothetical infrastructure trivia: [Stripe documents automatic webhook retries for up to three days, duplicate delivery, and no ordering guarantee](https://docs.stripe.com/webhooks), while [n8n lets operators retry failed workflow executions with the previous execution data](https://docs.n8n.io/workflows/executions/all-executions/). Happy-path testing rarely makes the dangerous gap visible, while broad claims such as “exactly once” are not defensible without system-specific assumptions.
 
 ### The solution
 
@@ -36,7 +36,9 @@ The deterministic simulator then executes only declared node semantics, mock HTT
 
 For a live repair, the public API sends only the sanitized graph, approved invariant, failing trace, and exact fixture to a separate private worker. Replit’s private-deployment gateway and a deployment-scoped access token restrict reachability; independent HMAC signatures bind the request, progress stream, and candidate and reject replay. The worker launches a fresh Codex SDK thread in a bounded temporary workspace with network and web search disabled. Codex may return only an explanation, exactly eight bounded RFC 6902 patch operations, and exactly five changed-node IDs. The worker then binds the trusted request fixture; the fixture is deliberately excluded from the model’s output schema. Deterministic validation checks the source hash, invariant ID, patch paths, graph structure, secret safety, change claims, and fixture identity. RetryProof translates the exact patched graph and reruns the same event, seed, scenario, and two deliveries. The repaired run records one mock refund and passes the declared invariant. If the worker is unavailable, the UI offers a clearly labeled validated fallback that is never represented as a fresh Codex run.
 
-The downloadable receipt binds source, fixture, before/after workflows, scenarios, traces, patch, coverage, and explicit limitations. A green receipt means only that the approved invariant passed the declared deterministic scenarios. RetryProof never claims exactly-once execution or production safety and never performs a real external action.
+The downloadable evidence package contains the sanitized source, synthetic fixture, before/after executions, bounded patch, repaired workflow, receipt, and explicit limitations. The receipt records the workflow source hash, declared scenarios, before/after suite hashes, repaired workflow hash, and model provenance. A green receipt means only that the approved invariant passed the declared deterministic scenarios. RetryProof never claims exactly-once execution or production safety and never performs a real external action.
+
+Unlike a webhook mock, RetryProof does not stop at replaying requests. It tracks business-keyed effects across multiple declared fault phases, binds an accepted repair to the exact failing fixture, and proves the same schedule turns green under a deterministic oracle.
 
 ### Why GPT-5.6 and Codex are central
 
@@ -46,13 +48,17 @@ Codex performs constrained repository-like repair work rather than chat: it read
 
 ### What judges can run
 
-The hosted judge path requires no account and no rebuild. Select **Load seeded workflow**, then **Analyze retry risk**. The seeded proposal is an explicitly labeled cached GPT-5.6-informed contract; a supported custom upload exercises live GPT-5.6 analysis. Inspect and approve the at-most-once invariant, run the four-scenario suite, review the red two-effect timeout trace, select **Repair with live Codex**, follow the signed five-stage progress feed, and replay the identical suite. The evidence view shows the same event, seed, scenario, and two deliveries changing from two effects to one.
+The hosted judge path requires no account and no rebuild. Select **Load seeded workflow**, then **Analyze retry risk**. The seeded proposal is an explicitly labeled cached GPT-5.6-informed contract; a supported custom upload exercises live GPT-5.6 analysis. Inspect and approve the at-most-once invariant, run the four-scenario suite, review the red two-effect timeout trace, select **Repair with live Codex**, follow the signed five-stage progress feed, and replay the identical suite. The Proof Flight Recorder derives its before/after graph, four-scenario matrix, changed nodes, and evidence references from that run, making the same event, seed, scenario, and two deliveries changing from two effects to one visible in one scan.
 
 ## How we built it
 
-RetryProof is a TypeScript/React application with strict schemas at every untrusted boundary. The importer canonicalizes a pinned n8n subset and fails closed on unsupported executable nodes. GPT-5.6 uses the OpenAI Responses API with structured output and no tools. The simulator is a deterministic state machine with mock adapters, explicit fault phases, logical time, a side-effect ledger, and an invariant oracle. The public API calls a separate private Replit worker using a deployment access token plus HMAC-bound requests. Codex uses the Codex SDK in a temporary workspace with disabled network/web search, no interactive approval, a bounded output contract, and a one-run loopback credential proxy. PostgreSQL stores anonymous sanitized session state with operation and network rate limits. The product streams real, signature-verified progress events while a repair runs and does not accept a candidate until deterministic replay passes.
+RetryProof is a TypeScript/React application with strict schemas at every untrusted boundary. The importer canonicalizes a pinned n8n subset and fails closed on unsupported executable nodes. GPT-5.6 uses the OpenAI Responses API with structured output and no tools. The simulator is a deterministic state machine with mock adapters, explicit fault phases, logical time, a side-effect ledger, and an invariant oracle. The public API calls a separate private Replit worker using a deployment access token plus HMAC-bound requests. Codex uses the Codex SDK in a temporary workspace with disabled network/web search, no interactive approval, a bounded output contract, and a per-run ephemeral loopback credential proxy. PostgreSQL stores anonymous sanitized session state with operation and network rate limits. The product streams real, signature-verified progress events while a repair runs and does not accept a candidate until deterministic replay passes.
 
-Codex accelerated scaffolding, implementation across import/simulator/platform/UI boundaries, test generation, repair-contract design, documentation, and verification. The key human decisions were to narrow the supported semantics, keep all effects mock-only, require approval before testing, bind repair to the exact failure fixture, and give verdict authority only to deterministic code.
+Codex accelerated scaffolding, implementation across import/simulator/platform/UI boundaries, test generation, repair-contract design, private-worker debugging, documentation, and production verification. For the final release, one agent owned the bounded feature implementation while separate agents independently reviewed technical/security correctness and the judge experience; their objections had to clear before merge. The key human decisions were to narrow the supported semantics, keep all effects mock-only, require approval before testing, bind repair to the exact failure fixture, and give verdict authority only to deterministic code.
+
+## My contribution
+
+I designed RetryProof’s product boundaries and built the end-to-end TypeScript/React system with Codex: sanitizer, deterministic simulator, GPT-5.6 grounding, private Codex worker, validation chain, judge UX, deployment, and release verification.
 
 ## Challenges we ran into
 
@@ -69,6 +75,7 @@ Codex accelerated scaffolding, implementation across import/simulator/platform/U
 - Live GPT-5.6 structured analysis with grounded node evidence.
 - Live Codex repair through a separately deployed private worker, accepted only by strict source, patch, fixture, secret, and deterministic replay validators.
 - Exact source/fixture/scenario binding across before and after executions.
+- A data-derived Proof Flight Recorder that turns the validated source graph, patched graph, all four scenario results, changed-node manifest, and run identifiers into an accessible before/after explanation.
 - Secret rejection, credential-reference stripping, human approval, rate limits, expiring sessions, and mock-only execution.
 - A production Replit topology with a public Autoscale app, PostgreSQL persistence, and a separately deployed private Reserved VM worker; the older non-root Docker image remains a tested standalone reference package.
 
@@ -112,11 +119,11 @@ GPT-5.6 and Codex each have a real, distinct, constrained role. The imported and
 
 ### Design
 
-The product is a coherent five-stage workbench, not a chat surface or isolated proof of concept. It has first-run guidance, approval gates, loading/error states, repair review, evidence download, cached/live provenance, and judge-ready synthetic data.
+The product is a coherent five-stage workbench, not a chat surface or isolated proof of concept. It has first-run guidance, approval gates, loading/error states, repair review, evidence download, cached/live provenance, and judge-ready synthetic data. The Proof Flight Recorder gives the dense validator output a responsive graph, text alternative, four-scenario comparison table, human repair summary, and secondary raw-JSON disclosure.
 
 ### Potential Impact
 
-RetryProof addresses a specific expensive failure mode for automation builders: duplicated consequential side effects after retries. It turns an invisible risk into a visible counterexample and a reviewable repair without touching production systems.
+RetryProof addresses a specific expensive failure mode for automation builders: duplicated consequential side effects after retries. Stripe says webhook delivery can retry for up to three days, arrive out of order, and occasionally duplicate. n8n builders are actively asking how to [guarantee exactly-once side effects](https://community.n8n.io/t/guarantee-exactly-once-side-effects/270350) and [safely replay failed production steps](https://community.n8n.io/t/best-practice-for-centralized-error-handling-and-retry-from-failed-step-in-production-workflows/300785). RetryProof makes one narrow part of that risk testable before deployment: a bounded workflow snapshot, human-approved invariant, declared fault schedule, and reviewable repair.
 
 ### Quality of the Idea
 

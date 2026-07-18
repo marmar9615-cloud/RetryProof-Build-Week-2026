@@ -2,14 +2,15 @@
 
 ## Required production screenshot set
 
-- [x] `screenshots/01-import.png` shows the deployed sanitized five-node demo, `5/5` support coverage, and source binding.
-- [x] `screenshots/02-contract.png` shows the deployed approval gate, exact effect/key/oracle, and seeded-contract provenance.
-- [x] `screenshots/03-red-counterexample.png` shows the deployed four-scenario result and primary timeout trace: same event, two deliveries, two effects, fail.
-- [x] `screenshots/04-codex-repair.png` shows the deployed accepted **Fresh Codex** artifact, validator checks, and truncated thread provenance.
-- [x] `screenshots/05-green-comparison.png` shows the deployed before `2/fail` and after `1/pass` comparison using the identical suite.
-- [x] `screenshots/06-evidence-receipt.png` shows the deployed hash, limitations, and **Download evidence ZIP** control.
+- [x] `screenshots/01-import.png` is an archived earlier-production capture of the sanitized five-node demo, `5/5` support coverage, and source binding.
+- [x] `screenshots/02-contract.png` is an archived earlier-production capture of the approval gate and effect/key/oracle contract.
+- [x] `screenshots/03-red-counterexample.png` is an archived earlier-production capture of the primary timeout trace: same event, two deliveries, two effects, fail.
+- [x] `screenshots/04-codex-repair.png` is an archived earlier-production capture of an accepted **Fresh Codex** artifact, validator checks, and truncated thread provenance.
+- [x] `screenshots/05-green-comparison.png` is an archived earlier-production capture of the before `2/fail` and after `1/pass` comparison.
+- [x] `screenshots/06-evidence-receipt.png` is an archived earlier-production capture of the evidence receipt and download control.
+- [x] `screenshots/07-proof-flight-recorder.png` shows the deployed data-derived before/after workflow paths, accepted repair summary, and live/cached provenance labels.
 
-The six files currently present are the final production screenshot set captured after the live worker passed.
+Screenshots 01–06 preserve the earlier production walkthrough and are intentionally labeled archived; they contain older provenance labels and identifiers and are not the source of truth for the current release. Screenshot 07 is the current mobile-contained Proof Flight Recorder release captured after desktop and 390×844 overflow verification. The hosted lab and `submission/VERIFICATION.md` are authoritative for current behavior and run identifiers.
 
 ## Image rules
 
@@ -17,7 +18,7 @@ The six files currently present are the final production screenshot set captured
 - No unrelated tabs, email address, account avatar, API-key page, notification, terminal, or private URL.
 - Synthetic values only.
 - Cached/live provenance visible wherever an agent artifact is shown.
-- Keep the “not exactly-once or production safety” boundary visible in the green/evidence images.
+- Keep the “not exactly-once or production safety” boundary visible in the green/evidence views or immediately adjacent submission copy. Screenshot 07 is recorder-focused and is paired with that boundary in the README.
 
 ## Thumbnail
 

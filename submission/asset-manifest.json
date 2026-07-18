@@ -72,6 +72,13 @@
       "sha256": "e915bb5a79c213ea06e8e017b3f91cf5cf532bc2da064944fa0bed8245a90c7d",
       "width": 1366,
       "height": 768
+    },
+    {
+      "path": "submission/screenshots/07-proof-flight-recorder.png",
+      "bytes": 400000,
+      "sha256": "9291b829b3d72bf8ff500e7467b0d760dcf0e960c6474219ff6db41ae4e4e78d",
+      "width": 1355,
+      "height": 762
     }
   ]
 }

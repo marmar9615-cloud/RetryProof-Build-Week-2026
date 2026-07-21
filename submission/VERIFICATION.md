@@ -8,7 +8,7 @@ Production proof was refreshed on **July 20, 2026 CDT**. This file keeps local, 
 - The source adds a data-derived Black Box Replay, full-width completed-evidence layout, keyboard focus handoff and polite live-stage announcements, a session-bound canonical receipt download, and a reproducibility capsule with an approved contract plus deterministic per-file SHA-256 manifest.
 - The manifest explicitly verifies byte consistency only; it does not verify signer identity, exactly-once execution, or production safety.
 - Personal-account main `13cc94d` contains `d2f04b6`, and the guarded public-app publish was verified before the production proof below. The separate private worker was not republished.
-- The external Devpost state remains separate until its final refresh is confirmed.
+- Devpost project version 5 was refreshed from the final reviewed release copy and re-submitted through the official plugin; submission `1092862` remained **Submitted**.
 
 ## Integrated production source
 
@@ -73,5 +73,5 @@ Production proof was refreshed on **July 20, 2026 CDT**. This file keeps local, 
 
 ## External submission proof
 
-- Devpost project: `https://devpost.com/software/retryproof`, submitted to OpenAI Build Week and still editable until the deadline.
-- The live project description, gallery, and contribution statement were rechecked after the Proof Flight Recorder update.
+- Devpost project: `https://devpost.com/software/retryproof`, submission `1092862`, status **Submitted**.
+- The authenticated project updated at `2026-07-20T20:36:20.388-04:00` to version 5. Readback confirmed the final description includes Black Box Replay, the reproducibility capsule, and the explicit no-exactly-once/no-production-safety limitation; the public video and hosted judge URL remain attached.

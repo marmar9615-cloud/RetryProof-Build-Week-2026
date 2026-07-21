@@ -1,0 +1,68 @@
+{
+  "after": {
+    "effectCount": 1,
+    "effectKey": "evt_refund_001",
+    "passed": true,
+    "suiteHash": "f97e64f11ade21786da5d11b1c66f97ecbf5f670c6d9ddba62659bbb4631fef2"
+  },
+  "before": {
+    "effectCount": 2,
+    "effectKey": "evt_refund_001",
+    "passed": false,
+    "suiteHash": "dd54d624a0f25593d0d4bc640a99e4d5c5a97b0fafb2057fe77a821e1f28146f"
+  },
+  "claim": "The approved at-most-once invariant failed before repair and passed after repair under the declared deterministic scenario.",
+  "generatedAt": "2026-07-21T00:03:43.340Z",
+  "invariant": {
+    "approved": true,
+    "id": "refunds_at_most_once",
+    "oracle": {
+      "effectId": "refunds",
+      "keyPath": "$.key",
+      "maxCount": 1,
+      "type": "at_most_once_effect"
+    },
+    "sourceNodeIds": [
+      "http_refund"
+    ],
+    "statement": "For each event.id, create at most one refunds effect across retries."
+  },
+  "limitations": [
+    "Mock adapters only; no real payment or network call is executed.",
+    "A passing declared scenario is not proof of exactly-once execution or production safety.",
+    "The receipt covers only the approved invariant, pinned workflow, fixture, seed, and scenario."
+  ],
+  "modelArtifacts": {
+    "analysis": "gpt-5.6-informed-template",
+    "deterministicValidation": "live",
+    "repair": "codex-live"
+  },
+  "repair": {
+    "changedNodeIds": [
+      "check_event",
+      "http_refund",
+      "retryproof_bind_key",
+      "retryproof_reservation_acquired",
+      "retryproof_reserve_key"
+    ],
+    "repairedWorkflowHash": "79fcd3747e747349bafabefd3e2290293d1d5754a8967c642886cf09ca284d1e",
+    "sourceHash": "e499febfb0f9fdb28f839374c6c8034222c742e11de86726eb637136a4e5f02b",
+    "strategy": "durable_reservation_before_effect"
+  },
+  "scenario": {
+    "deliveries": 2,
+    "ids": [
+      "duplicate_delivery",
+      "timeout_after_refund",
+      "rate_limited_then_retry",
+      "partial_failure_then_retry"
+    ],
+    "seed": "demo-v1"
+  },
+  "schemaVersion": "1",
+  "workflow": {
+    "id": "c1b2678a-9bbc-49c6-9785-ca3930ce16ea",
+    "name": "Refund request - unsafe retry",
+    "sourceHash": "e499febfb0f9fdb28f839374c6c8034222c742e11de86726eb637136a4e5f02b"
+  }
+}

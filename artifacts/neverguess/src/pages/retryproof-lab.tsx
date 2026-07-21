@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "wouter";
 import {
   AlertTriangle,
@@ -206,6 +206,41 @@ export function analysisBadgeLabel(mode?: Analysis["provenance"]["mode"]): strin
   return "Proposal only";
 }
 
+export function formatRepairElapsed(elapsedMs: number): string {
+  const seconds = Math.max(0, Math.floor(elapsedMs / 1_000));
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes}:${String(seconds % 60).padStart(2, "0")} elapsed · 6:00 request limit`;
+}
+
+export function liveRepairAnnouncement(
+  status: "running" | "complete" | "failed" | null,
+  stage?: LiveRepairStage,
+  message?: string,
+): string {
+  if (status === "complete") return "Live repair accepted by the deterministic gate.";
+  if (status === "failed") return "Live repair stopped safely. No candidate was accepted.";
+  if (status !== "running") return "";
+  if (!stage || !message) return "Live repair started.";
+  const label = LIVE_REPAIR_STAGES.find((item) => item.id === stage)?.label ?? "Live repair update";
+  return `${label}: ${message}`;
+}
+
+export function labLayoutClasses(hasArtifact: boolean): { shell: string; main: string; aside: string } {
+  return {
+    shell: hasArtifact
+      ? "mt-6 grid min-w-0 gap-6"
+      : "mt-6 grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]",
+    main: "min-w-0 space-y-6",
+    aside: hasArtifact
+      ? "grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-[1fr_2fr_1fr_auto] xl:items-start"
+      : "min-w-0 space-y-4 lg:sticky lg:top-24 lg:self-start",
+  };
+}
+
+export function LiveRepairAnnouncementRegion({ announcement }: { announcement: string }) {
+  return <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">{announcement}</div>;
+}
+
 export function stageFor(state: LabState): number {
   if (state.artifact) return 5;
   if (state.repair || state.before) return 4;
@@ -253,6 +288,11 @@ export default function RetryProofLab() {
   const breakStepRef = useRef<HTMLDivElement>(null);
   const repairStepRef = useRef<HTMLDivElement>(null);
   const evidenceStepRef = useRef<HTMLDivElement>(null);
+  const importHeadingRef = useRef<HTMLHeadingElement>(null);
+  const contractHeadingRef = useRef<HTMLHeadingElement>(null);
+  const breakHeadingRef = useRef<HTMLHeadingElement>(null);
+  const repairHeadingRef = useRef<HTMLHeadingElement>(null);
+  const evidenceHeadingRef = useRef<HTMLHeadingElement>(null);
   const shouldScrollToStepRef = useRef(false);
   const [session, setSession] = useState<LabSession | null>(null);
   const [readiness, setReadiness] = useState<Readiness>({ liveCodexConfigured: false });
@@ -319,13 +359,16 @@ export default function RetryProofLab() {
     if (!shouldScrollToStepRef.current) return;
     shouldScrollToStepRef.current = false;
     const targets = [importStepRef, contractStepRef, breakStepRef, repairStepRef, evidenceStepRef];
+    const headings = [importHeadingRef, contractHeadingRef, breakHeadingRef, repairHeadingRef, evidenceHeadingRef];
     const target = targets[step - 1]?.current;
+    const heading = headings[step - 1]?.current;
     if (!target) return;
     const frame = window.requestAnimationFrame(() => {
       target.scrollIntoView({
         behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
         block: "start",
       });
+      heading?.focus({ preventScroll: true });
     });
     return () => window.cancelAnimationFrame(frame);
   }, [step]);
@@ -563,13 +606,16 @@ export default function RetryProofLab() {
   }
 
   const evidenceDownload = state.artifact ? `${API}/artifacts/${state.artifact.id}/download` : "";
+  const receiptDownload = state.artifact ? `${API}/artifacts/${state.artifact.id}/receipt` : "";
   const expires = useMemo(() => session ? new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date(session.expiresAt)) : "—", [session]);
   const currentLiveStage = liveEvents.at(-1)?.stage;
   const currentLiveStageIndex = Math.max(0, LIVE_REPAIR_STAGES.findIndex((stage) => stage.id === currentLiveStage));
   const liveProgressPercent = liveStatus === "complete"
     ? 100
     : Math.max(8, ((currentLiveStageIndex + 1) / LIVE_REPAIR_STAGES.length) * 100);
-  const liveElapsedSeconds = Math.max(0, Math.floor(liveElapsedMs / 1_000));
+  const latestLiveEvent = liveEvents.at(-1);
+  const liveAnnouncement = liveRepairAnnouncement(liveStatus, latestLiveEvent?.stage, latestLiveEvent?.message);
+  const layout = labLayoutClasses(Boolean(state.artifact));
 
   return (
     <main className="min-h-[100dvh] bg-background text-foreground">
@@ -659,14 +705,14 @@ export default function RetryProofLab() {
             <div className="text-center"><Loader2 className="mx-auto h-7 w-7 animate-spin text-primary" /><p className="mt-3 text-sm text-muted-foreground">Establishing an isolated anonymous session…</p></div>
           </Panel>
         ) : (
-          <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-            <div className="min-w-0 space-y-6">
+          <div className={layout.shell}>
+            <div className={layout.main}>
               <div ref={importStepRef} className="scroll-mt-24">
                 <Panel className="p-6 md:p-8">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="eyebrow text-primary">01 · Controlled input</div>
-                    <h2 className="mt-2 text-2xl font-semibold">Load a compatible n8n workflow and synthetic fixture</h2>
+                    <h2 ref={importHeadingRef} tabIndex={-1} className="mt-2 text-2xl font-semibold outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4">Load a compatible n8n workflow and synthetic fixture</h2>
                     <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">Use the seeded refund flight test or bring a supported webhook workflow with one HTTP side effect and one response. RetryProof analyzes and simulates only sanitized structure and synthetic data—never uploaded code or real integrations.</p>
                   </div>
                   {state.workflow && <CheckCircle2 className="h-6 w-6 shrink-0 text-emerald-600" />}
@@ -723,7 +769,7 @@ export default function RetryProofLab() {
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <div className="eyebrow text-primary">02 · Human-approved contract</div>
-                      <h2 className="mt-2 text-2xl font-semibold">Approve what “correct” means</h2>
+                      <h2 ref={contractHeadingRef} tabIndex={-1} className="mt-2 text-2xl font-semibold outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4">Approve what “correct” means</h2>
                     </div>
                     <LabelPill tone={analysis.provenance.mode === "live" ? "green" : "amber"}>{analysisProvenanceLabel(analysis.provenance.mode)}</LabelPill>
                   </div>
@@ -759,7 +805,7 @@ export default function RetryProofLab() {
                 <div ref={breakStepRef} className="scroll-mt-24">
                   <Panel className="p-6 md:p-8">
                   <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div><div className="eyebrow text-primary">03 · Deterministic counterexample</div><h2 className="mt-2 text-2xl font-semibold">Make the retry failure happen on command</h2></div>
+                    <div><div className="eyebrow text-primary">03 · Deterministic counterexample</div><h2 ref={breakHeadingRef} tabIndex={-1} className="mt-2 text-2xl font-semibold outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4">Make the retry failure happen on command</h2></div>
                     {state.before && <LabelPill tone="red"><XCircle className="mr-1 h-3.5 w-3.5" />RED · {state.before.effectCount} effects</LabelPill>}
                   </div>
                   <div className="mt-6 grid gap-3 md:grid-cols-2">
@@ -781,13 +827,14 @@ export default function RetryProofLab() {
                 <div ref={repairStepRef} className="scroll-mt-24">
                   <Panel className="p-6 md:p-8">
                   <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div><div className="eyebrow text-primary">04 · Bounded repair</div><h2 className="mt-2 text-2xl font-semibold">Bind a repair to the failing proof</h2></div>
+                    <div><div className="eyebrow text-primary">04 · Bounded repair</div><h2 ref={repairHeadingRef} tabIndex={-1} className="mt-2 text-2xl font-semibold outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4">Bind a repair to the failing proof</h2></div>
                     <LabelPill tone={state.repair?.provenance.mode === "live-codex" ? "green" : "amber"}>
                       {state.repair
                         ? repairProvenanceLabel(state.repair.provenance.mode)
                           : readiness.liveCodexConfigured ? RETRYPROOF.repairModeLabel : "Validated fallback available"}
                     </LabelPill>
                   </div>
+                  <LiveRepairAnnouncementRegion announcement={liveAnnouncement} />
                   {!state.repair ? (
                     <div className="mt-6 rounded-2xl border border-dashed border-primary/30 bg-violet-50/50 p-6 text-center">
                       <Wrench className="mx-auto h-7 w-7 text-primary" /><h3 className="mt-3 font-semibold">Generate a source-bound repair artifact</h3><p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">A fresh Codex thread receives only this sanitized graph, approved invariant, and failing trace in an isolated worker. RetryProof then distrusts the candidate and validates its source binding, exact patch structure, secret scan, fixture, and deterministic replay before accepting it.</p>
@@ -802,7 +849,7 @@ export default function RetryProofLab() {
                         <div className={cn(
                           "mx-auto mt-5 max-w-2xl rounded-xl border p-4 text-left",
                           liveStatus === "failed" ? "border-red-200 bg-red-50" : "border-violet-200 bg-white/80",
-                        )} role="status" aria-live="polite" aria-atomic="false">
+                        )}>
                           <div className="flex flex-wrap items-center justify-between gap-3">
                             <div>
                               <div className="flex items-center gap-2 text-sm font-semibold">
@@ -813,7 +860,7 @@ export default function RetryProofLab() {
                                 {liveStatus === "running" ? "Real server events are shown below; worker events are signature-verified before relay. A fresh run typically takes 1–3 minutes and may take up to about 6 minutes within the enforced budget." : liveStatus === "failed" ? "No candidate was accepted. You can retry or use the clearly labeled validated fallback." : "The candidate crossed the deterministic acceptance boundary."}
                               </p>
                             </div>
-                            <div className="font-mono text-xs font-semibold text-muted-foreground">{liveElapsedSeconds}s elapsed</div>
+                            <div className="font-mono text-xs font-semibold text-muted-foreground" aria-hidden="true">{formatRepairElapsed(liveElapsedMs)}</div>
                           </div>
                           <div className="mt-4 h-2 overflow-hidden rounded-full bg-violet-100" role="progressbar" aria-label="Live Codex repair progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(liveProgressPercent)}>
                             <div className={cn("h-full rounded-full transition-[width] duration-500", liveStatus === "failed" ? "bg-red-500" : "bg-primary")} style={{ width: `${liveProgressPercent}%` }} />
@@ -873,8 +920,8 @@ export default function RetryProofLab() {
                   <Panel className="overflow-hidden">
                   <div className="border-b border-border bg-emerald-50 p-6 md:p-8">
                     <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
-                      <div><div className="eyebrow text-emerald-700">05 · Exportable evidence</div><h2 className="mt-2 text-3xl font-semibold text-emerald-950">Same seed. Same fault. One effect.</h2><p className="mt-2 max-w-2xl text-sm leading-relaxed text-emerald-900/75">{state.artifact.receipt.claim}</p></div>
-                      <Button asChild size="lg"><a href={evidenceDownload}><Download className="h-4 w-4" />Download evidence ZIP</a></Button>
+                      <div><div className="eyebrow text-emerald-700">05 · Exportable evidence</div><h2 ref={evidenceHeadingRef} tabIndex={-1} className="mt-2 text-3xl font-semibold text-emerald-950 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4">Same seed. Same fault. One effect.</h2><p className="mt-2 max-w-2xl text-sm leading-relaxed text-emerald-900/75">{state.artifact.receipt.claim}</p></div>
+                      <div className="max-w-sm md:text-right"><Button asChild size="lg"><a href={evidenceDownload}><Download className="h-4 w-4" />Download reproducibility capsule</a></Button><p className="mt-2 text-xs leading-relaxed text-emerald-900/70">Sanitized workflow, synthetic fixture, approved contract, paired traces, validated repair, limitations, and a per-file SHA-256 manifest.</p></div>
                     </div>
                   </div>
                   <div className="grid gap-px bg-border md:grid-cols-[1fr_auto_1fr]">
@@ -891,7 +938,7 @@ export default function RetryProofLab() {
                       before={state.before!}
                       repair={state.repair!}
                       after={state.after}
-                      artifact={{ sha256: state.artifact.sha256, receipt: state.artifact.receipt }}
+                      artifact={{ sha256: state.artifact.sha256, receiptUrl: receiptDownload }}
                     />
                     <div className="mt-6"><div className="mb-3 text-xs font-semibold text-muted-foreground">Primary repaired trace</div><TraceList execution={state.after} /></div>
                   </div>
@@ -900,7 +947,7 @@ export default function RetryProofLab() {
               )}
             </div>
 
-            <aside className="min-w-0 space-y-4 lg:sticky lg:top-24 lg:self-start">
+            <aside className={layout.aside}>
               <Panel className="p-5">
                 <div className="flex items-center gap-2"><LockKeyhole className="h-5 w-5 text-primary" /><h2 className="font-semibold">Execution boundary</h2></div>
                 <ul className="mt-4 space-y-3 text-sm text-muted-foreground">

@@ -80,6 +80,18 @@ describeWithDb("RetryProof integrated API", () => {
       },
     );
     expect(approvalResponse.status).toBe(200);
+    const approved = (await approvalResponse.json()) as {
+      analysis: {
+        id: string;
+        approvedAt: string;
+        invariant: { approved: true };
+      };
+    };
+    expect(approved.analysis).toMatchObject({
+      id: analyzed.analysis.id,
+      invariant: { approved: true },
+    });
+    expect(Date.parse(approved.analysis.approvedAt)).not.toBeNaN();
 
     const scenariosResponse = await fetch(
       `${baseUrl}/api/retryproof/v1/analyses/${analyzed.analysis.id}/scenarios`,
@@ -141,13 +153,93 @@ describeWithDb("RetryProof integrated API", () => {
     expect(downloadResponse.headers.get("content-type")).toContain("application/zip");
     const archiveBytes = new Uint8Array(await downloadResponse.arrayBuffer());
     expect(archiveBytes.byteLength).toBeGreaterThan(500);
-    const receiptBytes = unzipSync(archiveBytes)["receipt.json"];
+    const archive = unzipSync(archiveBytes);
+    const receiptBytes = archive["receipt.json"];
     expect(receiptBytes).toBeDefined();
     expect(createHash("sha256").update(receiptBytes!).digest("hex")).toBe(rechecked.artifact.sha256);
     expect(JSON.parse(strFromU8(receiptBytes!))).toMatchObject({
       before: { effectCount: 2, passed: false },
       after: { effectCount: 1, passed: true },
     });
+
+    const riskContract = JSON.parse(strFromU8(archive["risk-contract.json"]!));
+    expect(riskContract).toEqual(approved.analysis);
+    expect(riskContract).toMatchObject({
+      id: analyzed.analysis.id,
+      approvedAt: approved.analysis.approvedAt,
+      invariant: { approved: true },
+    });
+
+    const expectedPaths = [
+      "LIMITATIONS.txt",
+      "after.json",
+      "before.json",
+      "patched-workflow.json",
+      "receipt.json",
+      "repair.json",
+      "risk-contract.json",
+      "source-workflow.json",
+      "synthetic-fixture.json",
+    ];
+    const manifest = JSON.parse(strFromU8(archive["manifest.json"]!)) as {
+      schemaVersion: string;
+      receiptSha256: string;
+      limitation: string;
+      entries: Array<{ path: string; byteLength: number; sha256: string }>;
+    };
+    expect(manifest).toMatchObject({
+      schemaVersion: "1",
+      receiptSha256: rechecked.artifact.sha256,
+      limitation: expect.stringContaining("does not verify signer identity"),
+    });
+    expect(manifest.limitation).toContain("production safety");
+    expect(manifest.entries.map((entry) => entry.path)).toEqual(expectedPaths);
+    expect(manifest.entries.map((entry) => entry.path)).toEqual(
+      [...manifest.entries.map((entry) => entry.path)].sort(),
+    );
+    expect(manifest.entries.some((entry) => entry.path === "manifest.json")).toBe(false);
+    for (const entry of manifest.entries) {
+      const bytes = archive[entry.path];
+      expect(bytes, `manifest entry missing from archive: ${entry.path}`).toBeDefined();
+      expect(bytes!.byteLength, `manifest byte length mismatch: ${entry.path}`).toBe(entry.byteLength);
+      expect(createHash("sha256").update(bytes!).digest("hex"), `manifest hash mismatch: ${entry.path}`).toBe(entry.sha256);
+    }
+    const repeatedDownload = await fetch(
+      `${baseUrl}/api/retryproof/v1/artifacts/${rechecked.artifact.id}/download`,
+      { headers: { cookie } },
+    );
+    const repeatedArchive = unzipSync(new Uint8Array(await repeatedDownload.arrayBuffer()));
+    expect(repeatedArchive["manifest.json"]).toEqual(archive["manifest.json"]);
+
+    const receiptResponse = await fetch(
+      `${baseUrl}/api/retryproof/v1/artifacts/${rechecked.artifact.id}/receipt`,
+      { headers: { cookie } },
+    );
+    expect(receiptResponse.status).toBe(200);
+    expect(receiptResponse.headers.get("content-type")).toContain("application/json");
+    expect(receiptResponse.headers.get("content-disposition")).toBe(
+      `attachment; filename="retryproof-receipt-${rechecked.artifact.sha256.slice(0, 12)}.json"`,
+    );
+    const canonicalReceiptBytes = new Uint8Array(await receiptResponse.arrayBuffer());
+    expect(canonicalReceiptBytes).toEqual(receiptBytes);
+    expect(createHash("sha256").update(canonicalReceiptBytes).digest("hex")).toBe(rechecked.artifact.sha256);
+
+    const receiptWithoutSession = await fetch(
+      `${baseUrl}/api/retryproof/v1/artifacts/${rechecked.artifact.id}/receipt`,
+    );
+    expect(receiptWithoutSession.status).toBe(401);
+    await expect(receiptWithoutSession.json()).resolves.toMatchObject({ error: { code: "SESSION_REQUIRED" } });
+
+    const otherSessionResponse = await fetch(`${baseUrl}/api/retryproof/v1/session`, {
+      headers: { "user-agent": `retryproof-other-session-${Date.now()}` },
+    });
+    const otherCookie = cookieFrom(otherSessionResponse);
+    const receiptFromOtherSession = await fetch(
+      `${baseUrl}/api/retryproof/v1/artifacts/${rechecked.artifact.id}/receipt`,
+      { headers: { cookie: otherCookie } },
+    );
+    expect(receiptFromOtherSession.status).toBe(404);
+    await expect(receiptFromOtherSession.json()).resolves.toMatchObject({ error: { code: "ARTIFACT_NOT_FOUND" } });
 
     const deleteResponse = await fetch(`${baseUrl}/api/retryproof/v1/session`, {
       method: "DELETE",

@@ -8,9 +8,10 @@
 - [x] `screenshots/04-codex-repair.png` is an archived earlier-production capture of an accepted **Fresh Codex** artifact, validator checks, and truncated thread provenance.
 - [x] `screenshots/05-green-comparison.png` is an archived earlier-production capture of the before `2/fail` and after `1/pass` comparison.
 - [x] `screenshots/06-evidence-receipt.png` is an archived earlier-production capture of the evidence receipt and download control.
-- [x] `screenshots/07-proof-flight-recorder.png` shows the deployed data-derived before/after workflow paths, accepted repair summary, and live/cached provenance labels.
+- [x] `screenshots/07-proof-flight-recorder.png` shows the prior deployed data-derived before/after workflow paths, accepted repair summary, and live/cached provenance labels. It predates the July 20 Black Box Replay and capsule controls and is not presented as proof of those additions.
+- [x] `screenshots/08-black-box-replay-production.png` is the July 20 clean production capture of the current `2 → 1` result, reproducibility-capsule control, accepted before/after paths, and data-derived Black Box Replay.
 
-Screenshots 01–06 preserve the earlier production walkthrough and are intentionally labeled archived; they contain older provenance labels and identifiers and are not the source of truth for the current release. Screenshot 07 is the current mobile-contained Proof Flight Recorder release captured after desktop and 390×844 overflow verification. The hosted lab and `submission/VERIFICATION.md` are authoritative for current behavior and run identifiers.
+Screenshots 01–06 preserve the earlier production walkthrough and are intentionally labeled archived; they contain older provenance labels and identifiers and are not the source of truth for the current release. Screenshot 07 captures the mobile-contained Proof Flight Recorder before the July 20 judge-readable evidence update. Screenshot 08, the byte-verified files under `submission/evidence/`, the hosted lab, and `submission/VERIFICATION.md` are authoritative for current behavior and run identifiers.
 
 ## Image rules
 

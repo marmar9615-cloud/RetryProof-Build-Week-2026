@@ -1,10 +1,10 @@
-import { useState } from "react";
 import {
   ArrowRight,
   Check,
   CheckCircle2,
-  Copy,
+  Download,
   GitBranch,
+  GitCompareArrows,
   Route,
   ShieldCheck,
   XCircle,
@@ -32,6 +32,14 @@ export type ProofScenarioResult = {
   faultPhase: string;
   passed: boolean;
   effectCount: number;
+  traces: ProofTrace[];
+};
+
+export type ProofTrace = {
+  delivery: number;
+  event: string;
+  detail: string;
+  effectCount: number;
 };
 
 type ProofExecution = {
@@ -48,7 +56,7 @@ type ProofRepair = {
 
 type ProofArtifact = {
   sha256: string;
-  receipt: unknown;
+  receiptUrl: string;
 };
 
 type ConnectionTarget = { node: string };
@@ -116,6 +124,44 @@ export function scenarioProofRows(before: ProofExecution, after: ProofExecution)
       afterEffectCount: afterResult?.effectCount ?? null,
     };
   });
+}
+
+function sameTraceEvent(before?: ProofTrace, after?: ProofTrace): boolean {
+  return before?.delivery === after?.delivery
+    && before?.event === after?.event
+    && before?.detail === after?.detail
+    && before?.effectCount === after?.effectCount;
+}
+
+export function decisiveTraceDelta(before: ProofExecution, after: ProofExecution): {
+  scenarioId: string;
+  label: string;
+  faultPhase: string;
+  traceIndex: number;
+  before: ProofTrace | null;
+  after: ProofTrace | null;
+} | null {
+  const afterById = new Map(after.scenarioResults.map((result) => [result.scenarioId, result]));
+  for (const beforeResult of before.scenarioResults) {
+    const afterResult = afterById.get(beforeResult.scenarioId);
+    if (!afterResult) continue;
+    const length = Math.max(beforeResult.traces.length, afterResult.traces.length);
+    for (let traceIndex = 0; traceIndex < length; traceIndex += 1) {
+      const beforeTrace = beforeResult.traces[traceIndex];
+      const afterTrace = afterResult.traces[traceIndex];
+      if (!sameTraceEvent(beforeTrace, afterTrace)) {
+        return {
+          scenarioId: beforeResult.scenarioId,
+          label: beforeResult.label,
+          faultPhase: beforeResult.faultPhase,
+          traceIndex,
+          before: beforeTrace ?? null,
+          after: afterTrace ?? null,
+        };
+      }
+    }
+  }
+  return null;
 }
 
 export function validatorCheckLabel(check: string): string {
@@ -204,6 +250,34 @@ function shortHash(value: string): string {
   return `${value.slice(0, 10)}…${value.slice(-6)}`;
 }
 
+function eventLabel(event: string): string {
+  return event.split("_").map((word) => `${word.slice(0, 1).toUpperCase()}${word.slice(1)}`).join(" ");
+}
+
+function TraceMoment({ label, trace, tone }: { label: string; trace: ProofTrace | null; tone: "red" | "green" }) {
+  return (
+    <div className={cn(
+      "min-w-0 rounded-xl border p-4",
+      tone === "red" ? "border-red-200 bg-red-50/80" : "border-emerald-200 bg-emerald-50/80",
+    )}>
+      <div className={cn("text-[10px] font-semibold uppercase tracking-[0.14em]", tone === "red" ? "text-red-700" : "text-emerald-700")}>{label}</div>
+      {trace ? (
+        <>
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+            <div className={cn("font-semibold", tone === "red" ? "text-red-950" : "text-emerald-950")}>{eventLabel(trace.event)}</div>
+            <span className={cn(
+              "rounded-full border bg-white px-2.5 py-1 font-mono text-[10px] font-semibold",
+              tone === "red" ? "border-red-200 text-red-800" : "border-emerald-200 text-emerald-800",
+            )}>Delivery {trace.delivery} · {trace.effectCount} effect{trace.effectCount === 1 ? "" : "s"}</span>
+          </div>
+          <p className={cn("mt-2 text-sm leading-relaxed", tone === "red" ? "text-red-900/80" : "text-emerald-900/80")}>{trace.detail}</p>
+          <div className="mt-3 font-mono text-[10px] text-muted-foreground">event · {trace.event}</div>
+        </>
+      ) : <p className="mt-2 text-sm text-muted-foreground">No paired event was emitted at this trace position.</p>}
+    </div>
+  );
+}
+
 export function ProofFlightRecorder({
   sourceCanonical,
   sourceHash,
@@ -223,25 +297,16 @@ export function ProofFlightRecorder({
   after: ProofExecution;
   artifact: ProofArtifact;
 }) {
-  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
   const sourceIds = new Set(sourceCanonical.nodes.map((node) => node.id));
   const addedNodes = repair.patchedCanonical.nodes.filter((node) => !sourceIds.has(node.id));
   const rows = scenarioProofRows(before, after);
+  const decisive = decisiveTraceDelta(before, after);
   const hashes = [
     { label: "Source workflow", value: sourceHash },
     { label: "Approved plan", value: planHash },
     { label: "Repaired workflow", value: repair.repairedWorkflowHash },
     { label: "Evidence receipt", value: artifact.sha256 },
   ];
-
-  const copyReceipt = async () => {
-    try {
-      await navigator.clipboard.writeText(JSON.stringify(artifact.receipt, null, 2));
-      setCopyState("copied");
-    } catch {
-      setCopyState("failed");
-    }
-  };
 
   return (
     <div className="min-w-0 max-w-full space-y-6" data-testid="proof-flight-recorder">
@@ -269,6 +334,25 @@ export function ProofFlightRecorder({
         </div>
       </div>
 
+      {decisive && (
+        <section className="rounded-2xl border border-slate-300 bg-slate-950 p-5 text-white md:p-6" aria-labelledby="proof-black-box-title">
+          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-violet-300"><GitCompareArrows className="h-4 w-4" />Black box replay</div>
+              <h3 id="proof-black-box-title" className="mt-2 text-xl font-semibold">The exact moment the repaired trace diverged</h3>
+              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300">Same declared scenario, paired by <span className="font-mono text-slate-100">{decisive.scenarioId}</span>. {decisive.traceIndex === 0 ? "The traces diverged at the first recorded event." : `The first ${decisive.traceIndex} recorded event${decisive.traceIndex === 1 ? "" : "s"} matched; event ${decisive.traceIndex + 1} produced the decisive difference.`}</p>
+            </div>
+            <span className="w-fit rounded-full border border-slate-700 bg-slate-900 px-3 py-1.5 font-mono text-[10px] text-slate-300">{decisive.faultPhase}</span>
+          </div>
+          <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto_1fr] md:items-stretch">
+            <TraceMoment label="Before repair" trace={decisive.before} tone="red" />
+            <div className="grid place-items-center"><ArrowRight className="h-5 w-5 rotate-90 text-slate-500 md:rotate-0" aria-hidden="true" /></div>
+            <TraceMoment label="After repair" trace={decisive.after} tone="green" />
+          </div>
+          <p className="mt-4 text-xs leading-relaxed text-slate-400">{decisive.label}. Every value shown is taken from the accepted before/after trace artifacts; this comparison does not claim production safety or exactly-once execution.</p>
+        </section>
+      )}
+
       <section className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-border" aria-labelledby="proof-scenario-matrix">
         <div className="border-b border-border bg-secondary/40 px-4 py-3">
           <h3 id="proof-scenario-matrix" className="font-semibold">Four-scenario proof matrix</h3>
@@ -295,7 +379,7 @@ export function ProofFlightRecorder({
       <section className="rounded-2xl border border-border bg-background/70 p-4 md:p-5" aria-labelledby="proof-chain-title">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div><h3 id="proof-chain-title" className="flex items-center gap-2 font-semibold"><ShieldCheck className="h-4 w-4 text-emerald-600" />Evidence references</h3><p className="mt-1 text-xs text-muted-foreground">Run-level source, approved-plan, repaired-workflow, and evidence-receipt identifiers shown without implying they form one signed chain.</p></div>
-          <Button type="button" variant="outline" size="sm" onClick={() => void copyReceipt()}><Copy className="h-3.5 w-3.5" />{copyState === "copied" ? "Receipt copied" : "Copy receipt JSON"}</Button>
+          <Button asChild variant="outline" size="sm"><a href={artifact.receiptUrl}><Download className="h-3.5 w-3.5" />Download canonical receipt</a></Button>
         </div>
         <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] sm:items-center">
           {hashes.map((item, index) => (
@@ -305,8 +389,6 @@ export function ProofFlightRecorder({
             </div>
           ))}
         </div>
-        <div className="sr-only" aria-live="polite">{copyState === "copied" ? "Evidence receipt copied to clipboard." : copyState === "failed" ? "Evidence receipt could not be copied." : ""}</div>
-        {copyState === "failed" && <p className="mt-3 text-xs text-red-700" role="alert">Copy failed. The complete receipt remains available in the evidence ZIP.</p>}
       </section>
     </div>
   );

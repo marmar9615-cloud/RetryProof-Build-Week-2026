@@ -79,6 +79,27 @@
       "sha256": "9291b829b3d72bf8ff500e7467b0d760dcf0e960c6474219ff6db41ae4e4e78d",
       "width": 1355,
       "height": 762
+    },
+    {
+      "path": "submission/screenshots/08-black-box-replay-production.png",
+      "bytes": 307994,
+      "sha256": "fe957eb24026487b4261bc3c7a257232a20663fe45827b6d913ef50fd7eee9fb",
+      "width": 1366,
+      "height": 768
     }
-  ]
+  ],
+  "evidence": {
+    "receipt": {
+      "path": "submission/evidence/production-receipt-7443835dd9c7.json",
+      "bytes": 2188,
+      "sha256": "7443835dd9c79481b977e1a644f9ccc3b74f507faf7c3065f8d72a736b849817"
+    },
+    "capsule": {
+      "path": "submission/evidence/production-capsule-7443835dd9c7.zip",
+      "bytes": 9556,
+      "sha256": "3dba14b8cc2c160ebfdb41d12c519900035b157d068da7653e34f1ace5d37bab",
+      "entries": 9,
+      "receiptSha256": "7443835dd9c79481b977e1a644f9ccc3b74f507faf7c3065f8d72a736b849817"
+    }
+  }
 }

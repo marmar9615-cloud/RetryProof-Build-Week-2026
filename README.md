@@ -3,7 +3,7 @@
 > **Hosted judge path:** [marmarlabs.com/retryproof/lab](https://marmarlabs.com/retryproof/lab/)  
 > **Two-minute demo:** [youtu.be/4Oaie-WLKAc](https://youtu.be/4Oaie-WLKAc)
 > **Category:** Developer Tools  
-> **Production source:** submitted baseline `2dd084c`; reviewed Proof Flight Recorder release `9f8a2d6` plus mobile containment fix `6a1640b`
+> **Integrated release source:** submitted baseline `2dd084c`; Proof Flight Recorder `9f8a2d6`; mobile containment `6a1640b`; final judge-readable evidence release `d2f04b6`
 
 RetryProof reproduces a retry-sensitive automation failure, asks GPT-5.6 to propose a grounded reliability contract, requires human approval, and lets a fresh Codex SDK thread prepare one bounded repair. Deterministic validators—not either model—own every red or green verdict.
 
@@ -14,11 +14,14 @@ RetryProof reproduces a retry-sensitive automation failure, asks GPT-5.6 to prop
 3. Inspect the explicitly labeled seeded GPT-5.6-informed contract and approve the at-most-once invariant.
 4. Run the deterministic suite and inspect the red timeout trace: one event, two deliveries, two mock effects.
 5. Select **Repair with live Codex** once and allow the private worker to finish (typically 1–3 minutes, up to about 6 within the fail-closed budget).
-6. Replay the identical suite and inspect `2 → 1` in the data-derived Proof Flight Recorder, the evidence receipt, and the explicit claim limitation.
+6. Replay the identical suite and inspect `2 → 1` in the data-derived Proof Flight Recorder. **Black Box Replay** isolates the first trace event that changed: the unsafe retry records a second mock refund, while the accepted repair routes that same retry through a reservation conflict.
+7. Download the reproducibility capsule. It contains the approved contract, paired executions, bounded repair, canonical receipt, and a deterministic per-file SHA-256 manifest.
 
 The seeded analysis is deliberately cached and labeled for reproducibility; supported custom uploads exercise the live GPT-5.6 path. RetryProof never executes uploaded workflow code, makes real payment/network/SQL/shell calls, or claims production exactly-once safety.
 
-![Proof Flight Recorder showing accepted source and repaired graph paths, the red two-effect to green one-effect result, and the bounded patch summary](submission/screenshots/07-proof-flight-recorder.png)
+![Production RetryProof evidence showing the red two-effect to green one-effect result, accepted before and after workflow paths, reproducibility capsule control, and the data-derived Black Box Replay](submission/screenshots/08-black-box-replay-production.png)
+
+The pictured production run is preserved offline in `submission/evidence/`: canonical receipt SHA-256 `7443835dd9c79481b977e1a644f9ccc3b74f507faf7c3065f8d72a736b849817` and capsule SHA-256 `3dba14b8cc2c160ebfdb41d12c519900035b157d068da7653e34f1ace5d37bab`.
 
 | Same declared run | Before repair | After accepted repair |
 | --- | ---: | ---: |
@@ -30,6 +33,8 @@ The seeded analysis is deliberately cached and labeled for reproducibility; supp
 ### Why this is more than a webhook mock
 
 A request replay alone can show that an endpoint was called twice. RetryProof tracks business-keyed effects across four declared fault phases, binds an accepted repair to the exact failing source and fixture, translates the patched graph, and reruns the identical schedule under a deterministic oracle. The models help discover and repair the contract; they never get to declare success.
+
+The human story stays visible all the way through: **the refund succeeds, its response is lost, and the platform retries it**. GPT-5.6 proposes what correctness should mean, a human approves that scope, Codex writes a bounded repair, and deterministic replay owns the verdict. Black Box Replay is derived from the accepted before/after traces; it does not invent a demo animation or replace the raw evidence.
 
 ### Hosted architecture and trust boundary
 
@@ -45,8 +50,10 @@ flowchart LR
     C --> V["Patch, source, fixture, secret, and replay validators"]
     V -->|"signed events and bounded candidate"| P
     P --> S
-    S --> E["SHA-256 evidence receipt"]
+    S --> E["Canonical receipt plus per-file SHA-256 manifest"]
 ```
+
+The downloadable manifest checks that each listed capsule file has the recorded path, byte length, and SHA-256 digest. It verifies byte consistency only. It does **not** establish signer identity, exactly-once execution, or production safety.
 
 The worker receives no application database, billing, GitHub, or auth credentials. `credential-proxy.ts` gives each run a per-run ephemeral loopback credential proxy. The inline JSON input envelope escapes `<` as `\\u003c` so untrusted node text cannot close its data fence. The regression fixture is bound by trusted worker code and is deliberately excluded from the model output schema. Codex runs at high reasoning in a read-only sandbox with network, web search, and interactive approval disabled. Ordered fail-closed limits keep the 300s proxy, 330s turn abort, 345s hard-settle deadline, 360s public client, and 390s live test from racing each other.
 

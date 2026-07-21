@@ -1,13 +1,21 @@
 # RetryProof submission verification
 
-Verified on **July 17, 2026 CDT**. This file keeps local, source-control, production, and external-submission proof separate.
+Production proof was refreshed on **July 20, 2026 CDT**. This file keeps local, source-control, production, artifact, and external-submission proof separate.
+
+## July 20 judge-readable evidence release
+
+- The five product/test files in this public package are byte-identical to integrated source commit `d2f04b6` in `marmar9615-cloud/Copilot-Checker`.
+- The source adds a data-derived Black Box Replay, full-width completed-evidence layout, keyboard focus handoff and polite live-stage announcements, a session-bound canonical receipt download, and a reproducibility capsule with an approved contract plus deterministic per-file SHA-256 manifest.
+- The manifest explicitly verifies byte consistency only; it does not verify signer identity, exactly-once execution, or production safety.
+- Personal-account main `13cc94d` contains `d2f04b6`, and the guarded public-app publish was verified before the production proof below. The separate private worker was not republished.
+- The external Devpost state remains separate until its final refresh is confirmed.
 
 ## Integrated production source
 
 - Source repository: `marmar9615-cloud/Copilot-Checker`.
 - Submitted baseline commit: `2dd084c` (`Merge pull request #10`).
-- Proof Flight Recorder feature commit: `9f8a2d6`; integrated merge: `d4d6fb1`; mobile containment fix: `6a1640b`.
-- The production Replit workspace included `6a1640b` with a clean tree before the final public-app publish.
+- Proof Flight Recorder feature commit: `9f8a2d6`; integrated merge: `d4d6fb1`; mobile containment fix: `6a1640b`; judge-readable evidence source: `d2f04b6`.
+- The deployed integrated main was `13cc94d`, containing the final judge-readable evidence source `d2f04b6`.
 - The public-app artifact manifests were checked before publishing: API server and NeverGuess declare production services; the private RetryProof worker does not claim the public app's production slot.
 
 ## Production health and live paths
@@ -16,10 +24,13 @@ Verified on **July 17, 2026 CDT**. This file keeps local, source-control, produc
 - `GET /api/retryproof/v1/ready` returned `ready:true`, PostgreSQL storage, `cachedJudgePath:true`, `customWorkflowPath:true`, `liveAnalysisConfigured:true`, and `liveCodexConfigured:true`.
 - A supported custom four-node workflow exercised the production live-analysis path. The returned provenance was `live`, model `gpt-5.6-sol`, with grounded workflow coverage and no model-owned verdict.
 - The seeded production judge path was run from a clean anonymous session: analyze, human approval, deterministic red suite, one fresh live Codex repair, validator acceptance, identical replay, and evidence receipt.
-- The live Codex repair completed within about 50 seconds. The UI showed fresh thread prefix `019f72ed-f2f…`, one attempt, five worker-side validator checks, and no fallback provenance.
+- The fresh Codex repair completed in about 34 seconds in the observed browser journey. The UI showed signed **Worker accepted**, fresh thread `019f81fb-777b-78e3-8158-783ace5d5734`, one attempt, validator acceptance, and no fallback provenance.
 - The identical deterministic replay changed the declared timeout scenario from two mock effects to one while keeping the event, fixture, seed, fault, and two deliveries fixed.
-- Current production evidence receipt SHA-256: `f4270c8266a371e3f0015672d4484e77830a2945eea6ad236e6606ae89a02a02`.
+- Current production canonical receipt SHA-256: `7443835dd9c79481b977e1a644f9ccc3b74f507faf7c3065f8d72a736b849817`.
+- Current production capsule SHA-256: `3dba14b8cc2c160ebfdb41d12c519900035b157d068da7653e34f1ace5d37bab`.
+- ZIP integrity passed. The capsule contains 10 files total: `manifest.json` plus nine path-sorted payload entries. Every listed byte length and SHA-256 digest matched, and the downloaded canonical receipt is byte-identical to `receipt.json` inside the capsule.
 - The released Proof Flight Recorder rendered the accepted before/after paths, all four scenario rows, changed-node summary, and evidence references from that same run.
+- Black Box Replay confirmed the first two events matched and isolated event 3 as `effect_replayed` before versus `reservation_conflict` after. The four scenario rows were `2→1`, `2→1`, `1→0`, and `2→1`.
 - Responsive production checks passed at 390×844 with the raw patch disclosure both closed and open: the document remained 379px wide with no page-level horizontal overflow; graph, matrix, and raw patch overflow stayed inside their local scrollers. Desktop at 1366×768 also had no page-level horizontal overflow.
 
 ## Integrated test evidence
@@ -44,7 +55,8 @@ Verified on **July 17, 2026 CDT**. This file keeps local, source-control, produc
 - Normalized audio measured **-15.5 dB mean / -1.5 dB max**.
 - SHA-256: `48cc6e7b8ff50fe001aac253a804457759b8367faa28f387d634f77287650753`.
 - The cut uses production UI only and compresses only the live-worker wait. The narration discloses that compression.
-- One current 1355×762 production PNG shows the data-derived Proof Flight Recorder. Six earlier-production walkthrough captures remain in the package as explicitly archived context; their older labels and identifiers are not presented as current release proof.
+- Screenshots 01–07 preserve earlier production evidence and are explicitly labeled as such. `submission/screenshots/08-black-box-replay-production.png` is the clean 1366×768 capture of the current live `2→1` evidence view, capsule control, accepted paths, and Black Box Replay.
+- The exact current artifacts are preserved offline as `submission/evidence/production-receipt-7443835dd9c7.json` and `submission/evidence/production-capsule-7443835dd9c7.zip`.
 
 ## Public judge artifacts
 

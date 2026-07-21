@@ -13,7 +13,8 @@
 9. Confirm the accepted artifact says **Fresh Codex**, shows a truncated thread identifier and attempt count, and lists the deterministic validator checks.
 10. Select **Replay the identical suite** and confirm the same event, scenario, seed, and two deliveries now produce one refund effect and **Pass**.
 11. Inspect the **Proof Flight Recorder**. Its before/after workflow paths, four-scenario matrix, changed nodes, and evidence references are derived from the accepted run data; the graph also has a text alternative and the raw JSON patch remains available as a disclosure.
-12. Select **Download evidence ZIP** and inspect its patch, provenance, before/after hashes, and limitations.
+12. Inspect **Black Box Replay**. It compares the accepted paired traces and isolates the first event that changed: the unsafe retry records a second mock refund, while the repaired retry is diverted by the durable reservation.
+13. Select **Download canonical receipt** for the exact stable receipt bytes, or **Download reproducibility capsule** for the approved contract, paired executions, repair, repaired workflow, limitations, receipt, and deterministic per-file path/byte-length/SHA-256 manifest.
 
 Expected completion time: typically three to five minutes after the page loads, and up to about eight if the fresh Codex run uses its full budget.
 
@@ -29,6 +30,7 @@ Expected completion time: typically three to five minutes after the page loads, 
 - The judge path is entirely synthetic and makes zero real network side effects.
 - The seeded analysis contract is cached and labeled; the repair is fresh only when its provenance says **Fresh Codex** and includes a live thread identifier.
 - A green result applies only to the approved invariant, exact snapshot, fixture, and declared deterministic fault model.
+- The capsule manifest checks byte consistency only; it does not verify signer identity.
 - RetryProof does not prove exactly-once execution or production safety.
 
 ## If the hosted path is unavailable

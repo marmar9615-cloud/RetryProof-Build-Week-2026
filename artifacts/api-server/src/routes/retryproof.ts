@@ -1,4 +1,4 @@
-import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { and, eq, gt, lt, or, sql } from "drizzle-orm";
 import { Router, type Request, type Response } from "express";
 import { strToU8, zipSync } from "fflate";
@@ -504,20 +504,47 @@ router.get("/artifacts/:artifactId", route(async (req, res) => {
   res.json({ artifact });
 }));
 
+router.get("/artifacts/:artifactId/receipt", route(async (req, res) => {
+  const { row } = await requireSession(req);
+  const artifact = row.state.artifact;
+  if (!artifact || artifact.id !== req.params.artifactId) throw new HttpError("ARTIFACT_NOT_FOUND", "Evidence artifact not found in this session.", 404);
+  const receipt = Buffer.from(serializeEvidenceReceipt(artifact.receipt), "utf8");
+  res
+    .status(200)
+    .setHeader("Content-Type", "application/json; charset=utf-8")
+    .setHeader("Content-Disposition", `attachment; filename="retryproof-receipt-${artifact.sha256.slice(0, 12)}.json"`)
+    .setHeader("Content-Length", String(receipt.byteLength))
+    .send(receipt);
+}));
+
 router.get("/artifacts/:artifactId/download", route(async (req, res) => {
   const { row } = await requireSession(req);
-  const { workflow, analysis, before, repair, after, artifact } = row.state;
-  if (!workflow || !analysis || !before || !repair || !after || !artifact || artifact.id !== req.params.artifactId) throw new HttpError("ARTIFACT_NOT_FOUND", "Evidence artifact not found in this session.", 404);
-  const zip = zipSync({
+  const { workflow, approved, before, repair, after, artifact } = row.state;
+  if (!workflow || !approved || !before || !repair || !after || !artifact || artifact.id !== req.params.artifactId) throw new HttpError("ARTIFACT_NOT_FOUND", "Evidence artifact not found in this session.", 404);
+  const archiveFiles: Record<string, Uint8Array> = {
     "receipt.json": strToU8(serializeEvidenceReceipt(artifact.receipt)),
     "source-workflow.json": strToU8(JSON.stringify(workflow.canonical, null, 2)),
     "synthetic-fixture.json": strToU8(JSON.stringify(workflow.fixture, null, 2)),
-    "risk-contract.json": strToU8(JSON.stringify(analysis, null, 2)),
+    "risk-contract.json": strToU8(JSON.stringify(approved, null, 2)),
     "before.json": strToU8(JSON.stringify(before, null, 2)),
     "repair.json": strToU8(JSON.stringify(repair, null, 2)),
     "patched-workflow.json": strToU8(JSON.stringify(repair.patchedCanonical, null, 2)),
     "after.json": strToU8(JSON.stringify(after, null, 2)),
     "LIMITATIONS.txt": strToU8(artifact.receipt.limitations.join("\n")),
+  };
+  const manifest = {
+    schemaVersion: "1",
+    receiptSha256: artifact.sha256,
+    limitation: "This manifest records the byte length and SHA-256 digest of each listed archive file so a consumer can verify archive consistency. It does not verify signer identity, exactly-once execution, or production safety.",
+    entries: Object.keys(archiveFiles).sort().map((path) => ({
+      path,
+      byteLength: archiveFiles[path]!.byteLength,
+      sha256: createHash("sha256").update(archiveFiles[path]!).digest("hex"),
+    })),
+  };
+  const zip = zipSync({
+    ...archiveFiles,
+    "manifest.json": strToU8(JSON.stringify(manifest, null, 2)),
   });
   res
     .status(200)

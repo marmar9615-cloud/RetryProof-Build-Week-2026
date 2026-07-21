@@ -7,7 +7,7 @@ Production proof was refreshed on **July 20, 2026 CDT**. This file keeps local, 
 - The five product/test files in this public package are byte-identical to integrated source commit `d2f04b6` in `marmar9615-cloud/Copilot-Checker`.
 - The source adds a data-derived Black Box Replay, full-width completed-evidence layout, keyboard focus handoff and polite live-stage announcements, a session-bound canonical receipt download, and a reproducibility capsule with an approved contract plus deterministic per-file SHA-256 manifest.
 - The manifest explicitly verifies byte consistency only; it does not verify signer identity, exactly-once execution, or production safety.
-- Personal-account main `13cc94d` contains `d2f04b6`, and the guarded public-app publish was verified before the production proof below. The separate private worker was not republished.
+- Personal-account remote main `14064a7` contains `d2f04b6` and is tree-identical to verified source tree `13cc94d` after three Replit publish-only commits. The guarded public-app publish was verified before the production proof below. The separate private worker was not republished.
 - Devpost project version 5 was refreshed from the final reviewed release copy and re-submitted through the official plugin; submission `1092862` remained **Submitted**.
 
 ## Integrated production source
@@ -15,7 +15,7 @@ Production proof was refreshed on **July 20, 2026 CDT**. This file keeps local, 
 - Source repository: `marmar9615-cloud/Copilot-Checker`.
 - Submitted baseline commit: `2dd084c` (`Merge pull request #10`).
 - Proof Flight Recorder feature commit: `9f8a2d6`; integrated merge: `d4d6fb1`; mobile containment fix: `6a1640b`; judge-readable evidence source: `d2f04b6`.
-- The deployed integrated main was `13cc94d`, containing the final judge-readable evidence source `d2f04b6`.
+- The verified deployed source tree was `13cc94d`, containing final judge-readable evidence source `d2f04b6`; current remote main `14064a7` adds only tree-identical Replit publish markers.
 - The public-app artifact manifests were checked before publishing: API server and NeverGuess declare production services; the private RetryProof worker does not claim the public app's production slot.
 
 ## Production health and live paths

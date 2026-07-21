@@ -4,7 +4,7 @@ Everything below changes external state. Do not perform an applicable step until
 
 ## Current release state
 
-- Integrated personal-account main is at `13cc94d` (`marmar9615-cloud/Copilot-Checker`) and contains judge-readable evidence feature commit `d2f04b6`: Proof Flight Recorder, mobile containment, data-derived Black Box Replay, accessible live-status/focus handoff, and the reproducibility capsule API. The guarded public-app release and clean anonymous production red-to-green journey were verified on July 20; the private worker was not republished.
+- Integrated personal-account remote main is at `14064a7` (`marmar9615-cloud/Copilot-Checker`) and contains judge-readable evidence feature commit `d2f04b6`: Proof Flight Recorder, mobile containment, data-derived Black Box Replay, accessible live-status/focus handoff, and the reproducibility capsule API. The three commits after verified source tree `13cc94d` are Replit publish-only commits with no file-tree difference. The guarded public-app release and clean anonymous production red-to-green journey were verified on July 20; the private worker was not republished.
 - The public app readiness endpoint reports live GPT-5.6 and live Codex configured, and the hosted anonymous red-to-green path passed with a fresh Codex thread.
 - The public judge snapshot is `https://github.com/marmar9615-cloud/RetryProof-Build-Week-2026`; the final judge-readable evidence package is commit `2b245758796096a960619dde1b51b35276f85307`, with earlier immutable feature commits recorded in `submission/VERIFICATION.md`.
 - The final 1:59.300 demo is public at `https://youtu.be/4Oaie-WLKAc`.
